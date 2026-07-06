@@ -68,6 +68,7 @@ Open `http://localhost:3000`.
 - `/stores` lists stores with region/category filters
 - `/stores/[id]` shows detail, subscores, trust, verification, and reviews
 - `/stores/[id]/review` creates a review for an authenticated user
+- `/login` supports Supabase email/password login and signup
 - `/ranking` ranks stores with at least 5 visible reviews
 - `/admin` links to moderation tools
 - `/admin/reports` resolves reports
@@ -155,7 +156,6 @@ ranking_score = adjusted_score * 0.75 + revisit_score * 0.10 + trust_score * 0.1
 
 ## Known MVP Limitations
 
-- No custom login/signup UI is included yet.
 - Photo upload UI is not implemented; the review form accepts a photo URL for MVP speed.
 - Admin pages assume the signed-in profile has `is_admin = true`.
 - No AI fake review detection, receipt OCR, GPS verification, crawling, payments, native app, or recommendation engine.

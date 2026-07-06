@@ -1,9 +1,12 @@
+import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import { StoreCard } from "@/components/store-card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { STORE_CATEGORIES, STORE_REGIONS } from "@/lib/constants";
 import { getStores } from "@/lib/queries";
+import { isDatabaseSetupError } from "@/lib/setup";
+import type { StoreWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +18,21 @@ type StoresPageProps = {
 };
 
 export default async function StoresPage({ searchParams }: StoresPageProps) {
-  const stores = await getStores({
-    region: searchParams?.region,
-    category: searchParams?.category
-  });
+  let stores: StoreWithScore[] = [];
+  let setupRequired = false;
+
+  try {
+    stores = await getStores({
+      region: searchParams?.region,
+      category: searchParams?.category
+    });
+  } catch (error) {
+    if (!isDatabaseSetupError(error)) {
+      throw error;
+    }
+
+    setupRequired = true;
+  }
 
   return (
     <div className="container py-8">
@@ -56,7 +70,9 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
         </form>
       </div>
 
-      {stores.length ? (
+      {setupRequired ? (
+        <DatabaseSetupNotice />
+      ) : stores.length ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {stores.map((store) => (
             <StoreCard key={store.id} store={store} />

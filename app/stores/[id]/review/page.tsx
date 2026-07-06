@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ReviewForm } from "@/components/review-form";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUserId, getStore } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +13,13 @@ type StoreReviewPageProps = {
 };
 
 export default async function StoreReviewPage({ params }: StoreReviewPageProps) {
-  const [store, userId] = await Promise.all([getStore(params.id), getCurrentUserId()]);
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    redirect(`/login?returnTo=/stores/${params.id}/review`);
+  }
+
+  const store = await getStore(params.id);
 
   if (!store) {
     notFound();
@@ -33,19 +38,7 @@ export default async function StoreReviewPage({ params }: StoreReviewPageProps) 
         </p>
       </div>
 
-      {userId ? (
-        <ReviewForm storeId={store.id} />
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Sign in required</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm leading-6 text-muted-foreground">
-            Supabase Auth is wired for review creation, but this MVP does not include a custom
-            login screen yet. Sign in through your app auth flow before submitting reviews.
-          </CardContent>
-        </Card>
-      )}
+      <ReviewForm storeId={store.id} />
     </div>
   );
 }

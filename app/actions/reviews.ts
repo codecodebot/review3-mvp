@@ -31,11 +31,12 @@ export async function createReviewAction(formData: FormData) {
     data: { user }
   } = await supabase.auth.getUser();
 
+  const storeId = stringValue(formData, "store_id");
+
   if (!user) {
-    redirect("/?auth=required");
+    redirect(`/login?returnTo=/stores/${storeId}/review`);
   }
 
-  const storeId = stringValue(formData, "store_id");
   const tasteScore = scoreValue(formData, "taste_score");
   const serviceScore = scoreValue(formData, "service_score");
   const environmentScore = scoreValue(formData, "environment_score");

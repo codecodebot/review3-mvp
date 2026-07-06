@@ -19,6 +19,8 @@ values
   ('55555555-5555-5555-5555-555555555555', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'reviewer4@example.com', crypt('password123', gen_salt('bf')), now(), '{"provider":"email","providers":["email"]}', '{"nickname":"Ara"}', now(), now())
 on conflict (id) do nothing;
 
+select set_config('app.bypass_profile_protection', 'on', true);
+
 insert into public.profiles (id, nickname, is_admin)
 values
   ('11111111-1111-1111-1111-111111111111', 'Admin Mina', true),
@@ -26,7 +28,10 @@ values
   ('33333333-3333-3333-3333-333333333333', 'Sora', false),
   ('44444444-4444-4444-4444-444444444444', 'Leo', false),
   ('55555555-5555-5555-5555-555555555555', 'Ara', false)
-on conflict (id) do nothing;
+on conflict (id) do update
+set
+  nickname = excluded.nickname,
+  is_admin = excluded.is_admin;
 
 insert into public.stores (id, name, category, region, address, verification_status)
 values

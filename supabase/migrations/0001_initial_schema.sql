@@ -138,6 +138,24 @@ as $$
   );
 $$;
 
+create or replace function public.handle_new_auth_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles (id, nickname)
+  values (
+    new.id,
+    coalesce(nullif(trim(new.raw_user_meta_data ->> 'nickname'), ''), split_part(new.email, '@', 1))
+  )
+  on conflict (id) do nothing;
+
+  return new;
+end;
+$$;
+
 create or replace function public.calculate_review_score(
   taste int,
   service int,
@@ -751,6 +769,11 @@ drop trigger if exists stores_set_updated_at on public.stores;
 create trigger stores_set_updated_at
 before update on public.stores
 for each row execute function public.set_updated_at();
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function public.handle_new_auth_user();
 
 drop trigger if exists reviews_prepare_scoring on public.reviews;
 create trigger reviews_prepare_scoring

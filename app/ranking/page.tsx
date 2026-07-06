@@ -1,10 +1,24 @@
+import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import { RankingTable } from "@/components/ranking-table";
 import { getRankedStores } from "@/lib/queries";
+import { isDatabaseSetupError } from "@/lib/setup";
+import type { StoreWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function RankingPage() {
-  const stores = await getRankedStores();
+  let stores: StoreWithScore[] = [];
+  let setupRequired = false;
+
+  try {
+    stores = await getRankedStores();
+  } catch (error) {
+    if (!isDatabaseSetupError(error)) {
+      throw error;
+    }
+
+    setupRequired = true;
+  }
 
   return (
     <div className="container py-8">
@@ -15,7 +29,7 @@ export default async function RankingPage() {
           with revisit intent and trust score.
         </p>
       </div>
-      <RankingTable stores={stores} />
+      {setupRequired ? <DatabaseSetupNotice /> : <RankingTable stores={stores} />}
     </div>
   );
 }
