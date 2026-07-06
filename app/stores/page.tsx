@@ -5,7 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { STORE_CATEGORIES, STORE_REGIONS } from "@/lib/constants";
 import { getStores } from "@/lib/queries";
-import { isDatabaseSetupError } from "@/lib/setup";
+import {
+  getSupabaseIssueKind,
+  isSupabaseSetupOrConnectionError,
+  type SupabaseIssueKind
+} from "@/lib/setup";
 import type { StoreWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +23,7 @@ type StoresPageProps = {
 
 export default async function StoresPage({ searchParams }: StoresPageProps) {
   let stores: StoreWithScore[] = [];
-  let setupRequired = false;
+  let supabaseIssue: SupabaseIssueKind | null = null;
 
   try {
     stores = await getStores({
@@ -27,11 +31,11 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
       category: searchParams?.category
     });
   } catch (error) {
-    if (!isDatabaseSetupError(error)) {
+    if (!isSupabaseSetupOrConnectionError(error)) {
       throw error;
     }
 
-    setupRequired = true;
+    supabaseIssue = getSupabaseIssueKind(error);
   }
 
   return (
@@ -70,8 +74,8 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
         </form>
       </div>
 
-      {setupRequired ? (
-        <DatabaseSetupNotice />
+      {supabaseIssue ? (
+        <DatabaseSetupNotice kind={supabaseIssue} />
       ) : stores.length ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {stores.map((store) => (

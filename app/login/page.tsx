@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { isDatabaseSetupError, isSupabaseConnectionError } from "@/lib/setup";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +24,25 @@ function safeReturnTo(value: string | undefined) {
   return "/stores";
 }
 
+function displayAuthError(error: string | undefined) {
+  if (!error) {
+    return null;
+  }
+
+  if (isSupabaseConnectionError(error)) {
+    return "Supabase connection unavailable. The server could not reach Supabase; check local network access and retry.";
+  }
+
+  if (isDatabaseSetupError(error)) {
+    return "Database setup required before signup or login can create profiles.";
+  }
+
+  return error;
+}
+
 export default function LoginPage({ searchParams }: LoginPageProps) {
   const returnTo = safeReturnTo(searchParams?.returnTo);
+  const errorMessage = displayAuthError(searchParams?.error);
 
   return (
     <div className="container max-w-5xl py-10">
@@ -38,9 +56,9 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         </p>
       </div>
 
-      {searchParams?.error ? (
+      {errorMessage ? (
         <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          {searchParams.error}
+          {errorMessage}
         </div>
       ) : null}
 

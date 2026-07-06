@@ -1,23 +1,27 @@
 import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import { RankingTable } from "@/components/ranking-table";
 import { getRankedStores } from "@/lib/queries";
-import { isDatabaseSetupError } from "@/lib/setup";
+import {
+  getSupabaseIssueKind,
+  isSupabaseSetupOrConnectionError,
+  type SupabaseIssueKind
+} from "@/lib/setup";
 import type { StoreWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function RankingPage() {
   let stores: StoreWithScore[] = [];
-  let setupRequired = false;
+  let supabaseIssue: SupabaseIssueKind | null = null;
 
   try {
     stores = await getRankedStores();
   } catch (error) {
-    if (!isDatabaseSetupError(error)) {
+    if (!isSupabaseSetupOrConnectionError(error)) {
       throw error;
     }
 
-    setupRequired = true;
+    supabaseIssue = getSupabaseIssueKind(error);
   }
 
   return (
@@ -29,7 +33,7 @@ export default async function RankingPage() {
           with revisit intent and trust score.
         </p>
       </div>
-      {setupRequired ? <DatabaseSetupNotice /> : <RankingTable stores={stores} />}
+      {supabaseIssue ? <DatabaseSetupNotice kind={supabaseIssue} /> : <RankingTable stores={stores} />}
     </div>
   );
 }

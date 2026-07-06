@@ -1,13 +1,25 @@
 import type { User } from "@supabase/supabase-js";
-import { isDatabaseSetupError } from "@/lib/setup";
+import {
+  getErrorMessage,
+  isDatabaseSetupError,
+  isSupabaseConnectionError,
+  type SupabaseIssueKind
+} from "@/lib/setup";
 import type { createClient } from "@/lib/supabase/server";
 
 type SupabaseServerClient = ReturnType<typeof createClient>;
 
 export class AuthSetupError extends Error {
-  constructor() {
-    super("Database setup required before auth profiles can be created.");
+  readonly kind: SupabaseIssueKind;
+
+  constructor(kind: SupabaseIssueKind) {
+    super(
+      kind === "connection"
+        ? "Supabase connection unavailable. The server could not reach Supabase; check local network access and retry."
+        : "Database setup required before signup or login can create profiles."
+    );
     this.name = "AuthSetupError";
+    this.kind = kind;
   }
 }
 
@@ -28,11 +40,15 @@ export async function assertProfilesTableReady(supabase: SupabaseServerClient) {
     return;
   }
 
-  if (isDatabaseSetupError(error)) {
-    throw new AuthSetupError();
+  if (isSupabaseConnectionError(error)) {
+    throw new AuthSetupError("connection");
   }
 
-  throw new Error(`Unable to check profile table: ${error.message}`);
+  if (isDatabaseSetupError(error)) {
+    throw new AuthSetupError("database");
+  }
+
+  throw new Error(`Unable to check profile table: ${getErrorMessage(error)}`);
 }
 
 export async function ensureProfileForUser(supabase: SupabaseServerClient, user: User) {
@@ -45,10 +61,14 @@ export async function ensureProfileForUser(supabase: SupabaseServerClient, user:
   );
 
   if (error) {
-    if (isDatabaseSetupError(error)) {
-      throw new AuthSetupError();
+    if (isSupabaseConnectionError(error)) {
+      throw new AuthSetupError("connection");
     }
 
-    throw new Error(`Unable to ensure user profile: ${error.message}`);
+    if (isDatabaseSetupError(error)) {
+      throw new AuthSetupError("database");
+    }
+
+    throw new Error(`Unable to ensure user profile: ${getErrorMessage(error)}`);
   }
 }

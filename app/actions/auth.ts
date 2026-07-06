@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { AuthSetupError, assertProfilesTableReady, ensureProfileForUser } from "@/lib/auth";
+import { getErrorMessage } from "@/lib/setup";
 import { createClient } from "@/lib/supabase/server";
 
 function stringValue(formData: FormData, key: string) {
@@ -38,11 +39,11 @@ function loginRedirect(params: { error?: string; message?: string; returnTo?: st
 
 function authErrorMessage(error: unknown) {
   if (error instanceof AuthSetupError) {
-    return "Database setup required before signup or login can create profiles.";
+    return error.message;
   }
 
   if (error instanceof Error) {
-    return error.message;
+    return getErrorMessage(error);
   }
 
   return "Authentication failed.";

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import { ReviewCard } from "@/components/review-card";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
 import { ScoreBadge } from "@/components/score-badge";
@@ -8,6 +9,12 @@ import { VerificationBadge } from "@/components/verification-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getReviewsForStore, getStore } from "@/lib/queries";
+import {
+  getSupabaseIssueKind,
+  isSupabaseSetupOrConnectionError,
+  type SupabaseIssueKind
+} from "@/lib/setup";
+import type { ReviewWithProfile, StoreWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +33,27 @@ function formatPercent(value: number | null | undefined) {
 }
 
 export default async function StoreDetailPage({ params }: StoreDetailPageProps) {
-  const [store, reviews] = await Promise.all([getStore(params.id), getReviewsForStore(params.id)]);
+  let store: StoreWithScore | null = null;
+  let reviews: ReviewWithProfile[] = [];
+  let supabaseIssue: SupabaseIssueKind | null = null;
+
+  try {
+    [store, reviews] = await Promise.all([getStore(params.id), getReviewsForStore(params.id)]);
+  } catch (error) {
+    if (!isSupabaseSetupOrConnectionError(error)) {
+      throw error;
+    }
+
+    supabaseIssue = getSupabaseIssueKind(error);
+  }
+
+  if (supabaseIssue) {
+    return (
+      <div className="container py-8">
+        <DatabaseSetupNotice kind={supabaseIssue} />
+      </div>
+    );
+  }
 
   if (!store) {
     notFound();

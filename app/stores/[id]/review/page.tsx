@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import { ReviewForm } from "@/components/review-form";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUserId, getStore } from "@/lib/queries";
+import {
+  getSupabaseIssueKind,
+  isSupabaseSetupOrConnectionError,
+  type SupabaseIssueKind
+} from "@/lib/setup";
+import type { StoreWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +26,26 @@ export default async function StoreReviewPage({ params }: StoreReviewPageProps) 
     redirect(`/login?returnTo=/stores/${params.id}/review`);
   }
 
-  const store = await getStore(params.id);
+  let store: StoreWithScore | null = null;
+  let supabaseIssue: SupabaseIssueKind | null = null;
+
+  try {
+    store = await getStore(params.id);
+  } catch (error) {
+    if (!isSupabaseSetupOrConnectionError(error)) {
+      throw error;
+    }
+
+    supabaseIssue = getSupabaseIssueKind(error);
+  }
+
+  if (supabaseIssue) {
+    return (
+      <div className="container py-8">
+        <DatabaseSetupNotice kind={supabaseIssue} />
+      </div>
+    );
+  }
 
   if (!store) {
     notFound();
