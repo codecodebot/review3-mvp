@@ -23,11 +23,11 @@ function RatingTextMismatchBadge() {
         variant="warning"
         className="cursor-help px-2 py-0.5 text-[10px]"
         tabIndex={0}
-        aria-label="점수-내용 불일치: 높은 점수와 부정적인 리뷰 내용이 함께 감지되었습니다."
+        aria-label="점수-본문 불일치 의심: 높은 점수와 부정적인 리뷰 내용이 함께 감지되었습니다."
       >
-        불일치
+        점수-본문 불일치 의심
       </Badge>
-      <span className="pointer-events-none absolute left-1/2 top-6 z-20 hidden w-64 -translate-x-1/2 rounded-md border border-amber-200 bg-white px-3 py-2 text-xs leading-5 text-zinc-700 shadow-lg shadow-zinc-950/5 group-hover:block group-focus-within:block">
+      <span className="pointer-events-none absolute left-1/2 top-6 z-20 hidden w-72 -translate-x-1/2 rounded-md border border-amber-200 bg-white px-3 py-2 text-xs leading-5 text-zinc-700 shadow-lg shadow-zinc-950/5 group-hover:block group-focus-within:block">
         높은 점수와 부정적인 리뷰 내용이 함께 감지되었습니다.
       </span>
     </span>

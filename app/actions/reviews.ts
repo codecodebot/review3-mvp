@@ -45,6 +45,14 @@ export async function createReviewAction(formData: FormData) {
   const reviewScore = calculateReviewScore(tasteScore, serviceScore, environmentScore);
   const highScoreReason = optionalStringValue(formData, "high_score_reason");
   const reviewText = optionalStringValue(formData, "review_text");
+  const sentimentInput = [
+    reviewText,
+    highScoreReason,
+    optionalStringValue(formData, "low_score_reason"),
+    optionalStringValue(formData, "reason")
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join("\n");
 
   if (!storeId) {
     throw new Error("매장 ID가 필요합니다.");
@@ -54,7 +62,7 @@ export async function createReviewAction(formData: FormData) {
     throw new Error("고득점 리뷰는 10자 이상의 이유가 필요합니다.");
   }
 
-  const sentiment = await analyzeReviewSentiment(reviewText ?? "", { reviewScore });
+  const sentiment = await analyzeReviewSentiment(sentimentInput, { reviewScore });
   const insertPayload = {
     store_id: storeId,
     user_id: user.id,
