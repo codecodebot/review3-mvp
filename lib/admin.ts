@@ -35,7 +35,7 @@ export async function assertAdmin(): Promise<AdminContext> {
   const state = await getAdminState();
 
   if (!state.userId || !state.profile?.is_admin) {
-    throw new Error("Admin access required.");
+    throw new Error("관리자 권한이 필요합니다.");
   }
 
   return {

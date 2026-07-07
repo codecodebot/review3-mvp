@@ -24,7 +24,7 @@ async function recordAdminAction(input: {
   });
 
   if (error) {
-    throw new Error(`Unable to record admin action: ${error.message}`);
+    throw new Error(`관리자 작업을 기록할 수 없습니다: ${error.message}`);
   }
 
   return { supabase, userId };
@@ -47,7 +47,7 @@ export async function markReportResolvedAction(formData: FormData) {
     .eq("id", reportId);
 
   if (error) {
-    throw new Error(`Unable to resolve report: ${error.message}`);
+    throw new Error(`신고를 처리할 수 없습니다: ${error.message}`);
   }
 
   revalidatePath("/admin/reports");
@@ -67,7 +67,7 @@ export async function toggleReviewHiddenAction(formData: FormData) {
   const { error } = await supabase.from("reviews").update({ is_hidden: isHidden }).eq("id", reviewId);
 
   if (error) {
-    throw new Error(`Unable to update review visibility: ${error.message}`);
+    throw new Error(`리뷰 표시 상태를 수정할 수 없습니다: ${error.message}`);
   }
 
   await supabase.rpc("recalculate_profile_stats", { input_user_id: userId });
@@ -95,7 +95,7 @@ export async function toggleReviewExcludedAction(formData: FormData) {
     .eq("id", reviewId);
 
   if (error) {
-    throw new Error(`Unable to update score exclusion: ${error.message}`);
+    throw new Error(`점수 제외 상태를 수정할 수 없습니다: ${error.message}`);
   }
 
   await supabase.rpc("recalculate_profile_stats", { input_user_id: userId });
@@ -126,7 +126,7 @@ export async function updateStoreModerationAction(formData: FormData) {
     .eq("id", storeId);
 
   if (error) {
-    throw new Error(`Unable to update store moderation: ${error.message}`);
+    throw new Error(`매장 관리 상태를 수정할 수 없습니다: ${error.message}`);
   }
 
   await supabase.rpc("refresh_store_score_cache", { input_store_id: storeId });

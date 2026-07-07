@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import { ReviewCard } from "@/components/review-card";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
+import { RevisitRateDetail } from "@/components/revisit-rate";
 import { ScoreBadge } from "@/components/score-badge";
 import { TrustBadge } from "@/components/trust-badge";
 import { VerificationBadge } from "@/components/verification-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
 import { getReviewsForStore, getStore } from "@/lib/queries";
 import {
   getSupabaseIssueKind,
@@ -23,14 +25,6 @@ type StoreDetailPageProps = {
     id: string;
   };
 };
-
-function formatPercent(value: number | null | undefined) {
-  if (typeof value !== "number") {
-    return "0%";
-  }
-
-  return `${Math.round(value * 100)}%`;
-}
 
 export default async function StoreDetailPage({ params }: StoreDetailPageProps) {
   let store: StoreWithScore | null = null;
@@ -64,9 +58,11 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-3">
           <div>
-            <h1 className="text-3xl font-semibold tracking-normal">{store.name}</h1>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {store.region} · {store.category}
+            <h1 className="text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">
+              {store.name}
+            </h1>
+            <p className="mt-2 text-sm font-medium text-zinc-500">
+              {formatRegionLabel(store.region)} · {formatCategoryLabel(store.category)}
               {store.address ? ` · ${store.address}` : ""}
             </p>
           </div>
@@ -76,7 +72,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
           </div>
         </div>
         <Link href={`/stores/${store.id}/review`} className={buttonVariants()}>
-          Write review
+          리뷰 작성
         </Link>
       </div>
 
@@ -84,32 +80,32 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
         <RawAdjustedScoreBlock score={store.score} />
         <Card>
           <CardHeader>
-            <CardTitle>Score Details</CardTitle>
+            <CardTitle>점수 상세</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-3">
-              <ScoreBadge label="Taste" value={store.score?.taste_score} />
-              <ScoreBadge label="Service" value={store.score?.service_score} />
-              <ScoreBadge label="Environment" value={store.score?.environment_score} />
+              <ScoreBadge label="맛" value={store.score?.taste_score} />
+              <ScoreBadge label="서비스" value={store.score?.service_score} />
+              <ScoreBadge label="공간" value={store.score?.environment_score} />
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <div className="text-muted-foreground">Reviews</div>
+                <div className="text-muted-foreground">리뷰 수</div>
                 <div className="font-medium">{store.score?.review_count ?? 0}</div>
               </div>
               <div>
-                <div className="text-muted-foreground">Revisit intent</div>
-                <div className="font-medium">{formatPercent(store.score?.revisit_intent_rate)}</div>
+                <div className="text-muted-foreground">재방문 리뷰어</div>
+                <RevisitRateDetail score={store.score} />
               </div>
               <div>
-                <div className="text-muted-foreground">Peer average</div>
+                <div className="text-muted-foreground">랭킹 원점수 평균</div>
                 <div className="font-medium">
-                  {store.score?.peer_average_raw_score.toFixed(2) ?? "N/A"}
+                  {store.score?.peer_average_raw_score.toFixed(2) ?? "없음"}
                 </div>
               </div>
               <div>
-                <div className="text-muted-foreground">Ranking score</div>
-                <div className="font-medium">{store.score?.ranking_score.toFixed(2) ?? "N/A"}</div>
+                <div className="text-muted-foreground">보정 랭킹 점수</div>
+                <div className="font-medium">{store.score?.ranking_score.toFixed(2) ?? "없음"}</div>
               </div>
             </div>
           </CardContent>
@@ -118,8 +114,8 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
 
       <section className="mt-8">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-2xl font-semibold tracking-normal">Reviews</h2>
-          <span className="text-sm text-muted-foreground">{reviews.length} visible</span>
+          <h2 className="text-xl font-bold tracking-normal text-zinc-950">리뷰</h2>
+          <span className="text-sm font-medium text-zinc-500">표시 중 {reviews.length}개</span>
         </div>
         {reviews.length ? (
           <div className="grid gap-4">
@@ -128,8 +124,8 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
             ))}
           </div>
         ) : (
-          <div className="rounded-lg border bg-card p-10 text-center text-sm text-muted-foreground">
-            No visible reviews yet.
+          <div className="rounded-lg border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500">
+            아직 표시할 리뷰가 없습니다.
           </div>
         )}
       </section>

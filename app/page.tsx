@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { HelpTooltip } from "@/components/help-tooltip";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,32 +17,32 @@ export default function HomePage({ searchParams }: HomePageProps) {
   const authRequired = searchParams?.auth === "required";
 
   return (
-    <div className="container py-10">
+    <div className="container py-10 sm:py-12">
       <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <div className="space-y-6">
           {authRequired ? (
             <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              You need to be signed in with Supabase Auth before creating a review.
+              리뷰를 작성하려면 먼저 로그인해야 합니다.
             </div>
           ) : null}
           <div className="space-y-4">
-            <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-              Trust-weighted restaurant and cafe reviews
+            <p className="text-sm font-semibold text-blue-600">
+              신뢰 가중 식당·카페 리뷰
             </p>
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-normal sm:text-5xl">
-              Show the rating people gave, then show how much the rating can be trusted.
+            <h1 className="max-w-3xl text-3xl font-bold leading-tight tracking-normal text-zinc-950 sm:text-5xl">
+              사람들이 준 점수와, 그 점수가 얼마나 믿을 만한지 함께 봅니다.
             </h1>
-            <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-              This MVP separates taste, service, and environment, then displays both RAW
-              and adjusted scores so inflated or distorted review patterns are easier to spot.
+            <p className="max-w-2xl text-base font-normal leading-7 text-zinc-600">
+              맛, 서비스, 공간을 나눠 평가하고 원점수와 보정 점수를 함께 보여줍니다.
+              부풀려진 점수나 왜곡된 리뷰 패턴을 더 쉽게 확인할 수 있습니다.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link href="/stores" className={cn(buttonVariants(), "gap-2")}>
-              Browse stores <ArrowRight className="h-4 w-4" />
+              매장 보기 <ArrowRight className="h-4 w-4" />
             </Link>
             <Link href="/ranking" className={buttonVariants({ variant: "outline" })}>
-              View ranking
+              랭킹 보기
             </Link>
           </div>
         </div>
@@ -56,7 +57,9 @@ export default function HomePage({ searchParams }: HomePageProps) {
             service_score: 4.1,
             environment_score: 4.2,
             review_count: 12,
-            revisit_intent_rate: 0.74,
+            revisit_rate: 0.38,
+            unique_reviewer_count: 8,
+            returning_reviewer_count: 3,
             trust_level: "medium",
             peer_average_raw_score: 3.48,
             updated_at: new Date().toISOString()
@@ -67,28 +70,29 @@ export default function HomePage({ searchParams }: HomePageProps) {
       <section className="mt-12 grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Three dimensions</CardTitle>
+            <CardTitle>세 가지 평가</CardTitle>
           </CardHeader>
           <CardContent className="text-sm leading-6 text-muted-foreground">
-            Reviews score taste, service, and environment separately. The individual review
-            score is taste 50%, service 25%, and environment 25%.
+            리뷰는 맛, 서비스, 공간을 따로 평가합니다. 개별 리뷰 점수는 맛 50%,
+            서비스 25%, 공간 25%로 계산합니다.
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Rule-based weights</CardTitle>
+            <CardTitle>규칙 기반 가중치</CardTitle>
           </CardHeader>
           <CardContent className="text-sm leading-6 text-muted-foreground">
-            Review quality and user trust weights are transparent MVP rules, including text
-            length, photos, revisit intent, review count, reports, and hidden review history.
+            리뷰 품질과 사용자 신뢰도는 글 길이, 사진, 리뷰 수, 신고, 숨김 이력,
+            실제 재방문 리뷰 패턴 같은 명확한 규칙으로 계산합니다.
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Always show RAW</CardTitle>
+            <CardTitle>원점수 공개</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm leading-6 text-muted-foreground">
-            {SCORE_EXPLANATION}
+          <CardContent className="flex items-center gap-2 text-sm leading-6 text-muted-foreground">
+            <span>원점수와 보정 점수를 함께 표시합니다.</span>
+            <HelpTooltip label="원점수와 보정 점수">{SCORE_EXPLANATION}</HelpTooltip>
           </CardContent>
         </Card>
       </section>

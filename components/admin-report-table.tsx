@@ -15,7 +15,7 @@ type AdminReportTableProps = {
 };
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en", {
+  return new Intl.DateTimeFormat("ko-KR", {
     month: "short",
     day: "numeric",
     hour: "2-digit",
@@ -23,11 +23,27 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function targetTypeLabel(value: string) {
+  if (value === "review") {
+    return "리뷰";
+  }
+
+  if (value === "store") {
+    return "매장";
+  }
+
+  if (value === "profile") {
+    return "프로필";
+  }
+
+  return value;
+}
+
 export function AdminReportTable({ reports }: AdminReportTableProps) {
   if (!reports.length) {
     return (
-      <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">
-        No reports are in the queue.
+      <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
+        처리할 신고가 없습니다.
       </div>
     );
   }
@@ -36,12 +52,12 @@ export function AdminReportTable({ reports }: AdminReportTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Created</TableHead>
-          <TableHead>Target</TableHead>
-          <TableHead>Reason</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Reporter</TableHead>
-          <TableHead>Action</TableHead>
+          <TableHead>생성일</TableHead>
+          <TableHead>대상</TableHead>
+          <TableHead>사유</TableHead>
+          <TableHead>상태</TableHead>
+          <TableHead>신고자</TableHead>
+          <TableHead>작업</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -49,18 +65,18 @@ export function AdminReportTable({ reports }: AdminReportTableProps) {
           <TableRow key={report.id}>
             <TableCell>{formatDate(report.created_at)}</TableCell>
             <TableCell>
-              <div className="font-medium">{report.target_type}</div>
+              <div className="font-medium">{targetTypeLabel(report.target_type)}</div>
               <div className="text-xs text-muted-foreground">{report.target_id}</div>
             </TableCell>
             <TableCell>{report.reason}</TableCell>
-            <TableCell>{report.status}</TableCell>
-            <TableCell>{report.reporter?.nickname ?? "Unknown"}</TableCell>
+            <TableCell>{report.status === "resolved" ? "처리됨" : "대기 중"}</TableCell>
+            <TableCell>{report.reporter?.nickname ?? "알 수 없음"}</TableCell>
             <TableCell>
               {report.status === "resolved" ? null : (
                 <form action={markReportResolvedAction}>
                   <input type="hidden" name="report_id" value={report.id} />
                   <Button type="submit" size="sm" variant="outline">
-                    Resolve
+                    처리
                   </Button>
                 </form>
               )}

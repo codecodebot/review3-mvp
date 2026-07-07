@@ -15,6 +15,7 @@ export type Database = {
           report_count: number;
           hidden_review_count: number;
           is_admin: boolean;
+          is_synthetic: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -29,6 +30,7 @@ export type Database = {
           report_count?: number;
           hidden_review_count?: number;
           is_admin?: boolean;
+          is_synthetic?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -46,6 +48,7 @@ export type Database = {
           lng: number | null;
           verification_status: string;
           ranking_limited: boolean;
+          is_synthetic: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -59,6 +62,7 @@ export type Database = {
           lng?: number | null;
           verification_status?: string;
           ranking_limited?: boolean;
+          is_synthetic?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -76,7 +80,6 @@ export type Database = {
           review_score: number | null;
           review_text: string | null;
           photo_url: string | null;
-          revisit_intent: "yes" | "no" | "unsure" | null;
           visit_type: string | null;
           price_satisfaction: string | null;
           is_high_score: boolean;
@@ -86,6 +89,7 @@ export type Database = {
           final_weight: number;
           is_hidden: boolean;
           excluded_from_score: boolean;
+          is_synthetic: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -99,7 +103,6 @@ export type Database = {
           review_score?: number | null;
           review_text?: string | null;
           photo_url?: string | null;
-          revisit_intent?: "yes" | "no" | "unsure" | null;
           visit_type?: string | null;
           price_satisfaction?: string | null;
           is_high_score?: boolean;
@@ -109,6 +112,7 @@ export type Database = {
           final_weight?: number;
           is_hidden?: boolean;
           excluded_from_score?: boolean;
+          is_synthetic?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -174,7 +178,9 @@ export type Database = {
           service_score: number;
           environment_score: number;
           review_count: number;
-          revisit_intent_rate: number;
+          revisit_rate: number | null;
+          unique_reviewer_count: number;
+          returning_reviewer_count: number;
           trust_level: string;
           peer_average_raw_score: number;
           updated_at: string;
@@ -189,12 +195,30 @@ export type Database = {
           service_score?: number;
           environment_score?: number;
           review_count?: number;
-          revisit_intent_rate?: number;
+          revisit_rate?: number | null;
+          unique_reviewer_count?: number;
+          returning_reviewer_count?: number;
           trust_level?: string;
           peer_average_raw_score?: number;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["store_score_cache"]["Insert"]>;
+        Relationships: [];
+      };
+      scoring_settings: {
+        Row: {
+          id: boolean;
+          include_synthetic_reviews: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: boolean;
+          include_synthetic_reviews?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["scoring_settings"]["Insert"]>;
         Relationships: [];
       };
       admin_actions: {
@@ -238,7 +262,6 @@ export type Database = {
           photo_url: string | null;
           is_high_score: boolean;
           high_score_reason: string | null;
-          revisit_intent: string | null;
         };
         Returns: number;
       };
@@ -261,6 +284,10 @@ export type Database = {
         };
         Returns: number;
       };
+      include_synthetic_reviews_in_scoring: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
       refresh_store_score_cache: {
         Args: {
           input_store_id: string;
@@ -269,6 +296,22 @@ export type Database = {
       };
       refresh_all_store_scores: {
         Args: Record<string, never>;
+        Returns: void;
+      };
+      refresh_store_score_normalization: {
+        Args: Record<string, never>;
+        Returns: void;
+      };
+      set_synthetic_reviews_included: {
+        Args: {
+          include_reviews: boolean;
+        };
+        Returns: void;
+      };
+      set_synthetic_reviews_excluded: {
+        Args: {
+          exclude_reviews: boolean;
+        };
         Returns: void;
       };
       create_report: {
@@ -294,13 +337,16 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Store = Database["public"]["Tables"]["stores"]["Row"];
 export type Review = Database["public"]["Tables"]["reviews"]["Row"];
 export type StoreScoreCache = Database["public"]["Tables"]["store_score_cache"]["Row"];
+export type ScoringSettings = Database["public"]["Tables"]["scoring_settings"]["Row"];
 export type Report = Database["public"]["Tables"]["reports"]["Row"];
 
 export type StoreWithScore = Store & {
   score: StoreScoreCache | null;
 };
 
-export type ProfileSummary = Pick<Profile, "id" | "nickname" | "trust_score" | "review_count">;
+export type ProfileSummary = Pick<Profile, "id" | "nickname" | "trust_score" | "review_count"> & {
+  is_synthetic?: boolean;
+};
 
 export type ReviewWithProfile = Review & {
   profile: ProfileSummary | null;

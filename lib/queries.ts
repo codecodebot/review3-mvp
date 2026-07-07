@@ -122,7 +122,7 @@ export async function getRankedStores() {
     .from("store_score_cache")
     .select("*")
     .gte("review_count", 5)
-    .order("ranking_score", { ascending: false })
+    .order("raw_score", { ascending: false })
     .returns<StoreScoreCache[]>();
 
   if (error) {
@@ -146,10 +146,16 @@ export async function getRankedStores() {
   }
 
   const storeById = new Map((stores ?? []).map((store) => [store.id, store]));
-  return scores.flatMap<StoreWithScore>((score) => {
-    const store = storeById.get(score.store_id);
-    return store ? [{ ...store, score }] : [];
-  });
+  return scores
+    .flatMap<StoreWithScore>((score) => {
+      const store = storeById.get(score.store_id);
+      return store ? [{ ...store, score }] : [];
+    })
+    .sort((a, b) => {
+      const aRaw = a.score?.raw_score ?? 0;
+      const bRaw = b.score?.raw_score ?? 0;
+      return bRaw - aRaw;
+    });
 }
 
 export async function getReports() {

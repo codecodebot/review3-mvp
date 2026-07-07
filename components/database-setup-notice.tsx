@@ -12,28 +12,27 @@ export function DatabaseSetupNotice({ kind = "database" }: DatabaseSetupNoticePr
     <Card>
       <CardHeader>
         <CardTitle>
-          {isConnectionIssue ? "Supabase connection unavailable" : "Database setup required"}
+          {isConnectionIssue ? "Supabase 연결 불가" : "데이터베이스 설정 필요"}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm leading-6 text-muted-foreground">
         {isConnectionIssue ? (
           <>
             <p>
-              Supabase environment variables are configured, but this server could not reach the
-              Supabase API. Check local network access, confirm the Supabase project is online, and
-              restart the development server after environment changes.
+              Supabase 환경 변수는 설정되어 있지만 서버가 Supabase API에 연결하지 못했습니다.
+              로컬 네트워크, Supabase 프로젝트 상태, 개발 서버 재시작 여부를 확인해 주세요.
             </p>
-            <p>The app is showing this setup state instead of crashing.</p>
+            <p>앱은 중단되지 않고 이 설정 안내를 표시하고 있습니다.</p>
           </>
         ) : (
           <>
             <p>
-              Supabase is configured, but the MVP tables are not available yet. Apply the migration,
-              then run the seed data to populate the demo stores and reviews.
+              Supabase는 설정되어 있지만 MVP 테이블이 아직 준비되지 않았습니다. 마이그레이션을
+              적용한 뒤 시드 데이터를 실행해 데모 매장과 리뷰를 채워 주세요.
             </p>
             <p>
-              Use <code>supabase/migrations/0001_initial_schema.sql</code> first, then{" "}
-              <code>supabase/seed.sql</code>.
+              먼저 <code>supabase/migrations/0001_initial_schema.sql</code>을 실행한 뒤{" "}
+              필요한 시드 파일을 실행합니다.
             </p>
           </>
         )}

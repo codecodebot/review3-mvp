@@ -10,7 +10,7 @@ type ScoreBadgeProps = {
 
 function formatScore(value: number | null | undefined) {
   if (typeof value !== "number" || Number.isNaN(value)) {
-    return "N/A";
+    return "없음";
   }
 
   return value.toFixed(2);
@@ -26,8 +26,8 @@ export function ScoreBadge({ label, value, tone = "subtle", className }: ScoreBa
 
   return (
     <div className={cn("flex items-center gap-2", className)}>
-      <span className="text-xs font-medium text-muted-foreground">{label}</span>
-      <Badge variant="outline" className={cn("text-sm", toneClass)}>
+      <span className="text-xs font-medium text-zinc-500">{label}</span>
+      <Badge variant="outline" className={cn("text-sm tabular-nums", toneClass)}>
         {formatScore(value)}
       </Badge>
     </div>

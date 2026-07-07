@@ -30,11 +30,15 @@ function displayAuthError(error: string | undefined) {
   }
 
   if (isSupabaseConnectionError(error)) {
-    return "Supabase connection unavailable. The server could not reach Supabase; check local network access and retry.";
+    return "Supabase 연결 불가. 서버가 Supabase에 연결하지 못했습니다. 네트워크와 프로젝트 상태를 확인해 주세요.";
   }
 
   if (isDatabaseSetupError(error)) {
-    return "Database setup required before signup or login can create profiles.";
+    return "데이터베이스 설정이 필요합니다. 가입 또는 로그인 전에 profiles 테이블을 준비해 주세요.";
+  }
+
+  if (/^[\x00-\x7F]+$/.test(error)) {
+    return "인증 처리 중 오류가 발생했습니다. 입력값과 계정 상태를 확인해 주세요.";
   }
 
   return error;
@@ -48,11 +52,11 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
     <div className="container max-w-5xl py-10">
       <div className="mb-6">
         <Link href="/" className="text-sm font-medium text-primary hover:underline">
-          Back home
+          홈으로
         </Link>
-        <h1 className="mt-4 text-3xl font-semibold tracking-normal">Login</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Use email and password auth to write reviews and access your account.
+        <h1 className="mt-4 text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">로그인</h1>
+        <p className="mt-2 text-sm leading-6 text-zinc-500">
+          이메일과 비밀번호로 로그인해 리뷰를 작성하고 계정을 사용할 수 있습니다.
         </p>
       </div>
 
@@ -71,18 +75,18 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Log in</CardTitle>
-            <CardDescription>Return to the app with an existing account.</CardDescription>
+            <CardTitle>로그인</CardTitle>
+            <CardDescription>기존 계정으로 계속합니다.</CardDescription>
           </CardHeader>
           <CardContent>
             <form action={loginAction} className="space-y-4">
               <input type="hidden" name="return_to" value={returnTo} />
               <div className="space-y-2">
-                <Label htmlFor="login-email">Email</Label>
+                <Label htmlFor="login-email">이메일</Label>
                 <Input id="login-email" name="email" type="email" autoComplete="email" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="login-password">Password</Label>
+                <Label htmlFor="login-password">비밀번호</Label>
                 <Input
                   id="login-password"
                   name="password"
@@ -92,7 +96,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
                 />
               </div>
               <Button type="submit" className="w-full">
-                Log in
+                로그인
               </Button>
             </form>
           </CardContent>
@@ -100,22 +104,22 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Sign up</CardTitle>
-            <CardDescription>Create an account and matching profile row.</CardDescription>
+            <CardTitle>가입</CardTitle>
+            <CardDescription>계정과 프로필을 함께 만듭니다.</CardDescription>
           </CardHeader>
           <CardContent>
             <form action={signupAction} className="space-y-4">
               <input type="hidden" name="return_to" value={returnTo} />
               <div className="space-y-2">
-                <Label htmlFor="signup-nickname">Nickname</Label>
+                <Label htmlFor="signup-nickname">닉네임</Label>
                 <Input id="signup-nickname" name="nickname" autoComplete="nickname" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
+                <Label htmlFor="signup-email">이메일</Label>
                 <Input id="signup-email" name="email" type="email" autoComplete="email" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="signup-password">Password</Label>
+                <Label htmlFor="signup-password">비밀번호</Label>
                 <Input
                   id="signup-password"
                   name="password"
@@ -126,7 +130,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
                 />
               </div>
               <Button type="submit" className="w-full">
-                Sign up
+                가입하기
               </Button>
             </form>
           </CardContent>

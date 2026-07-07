@@ -13,10 +13,10 @@ export default async function AdminStoresPage() {
       <div className="container max-w-2xl py-10">
         <Card>
           <CardHeader>
-            <CardTitle>Admin access required</CardTitle>
+            <CardTitle>관리자 권한 필요</CardTitle>
           </CardHeader>
           <CardContent className="text-sm text-muted-foreground">
-            Store moderation is limited to admin profiles.
+            매장 관리는 관리자 프로필만 사용할 수 있습니다.
           </CardContent>
         </Card>
       </div>
@@ -28,9 +28,9 @@ export default async function AdminStoresPage() {
   return (
     <div className="container py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-semibold tracking-normal">Stores</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Update verification status and ranking limits.
+        <h1 className="text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">매장</h1>
+        <p className="mt-2 text-sm leading-6 text-zinc-500">
+          인증 상태와 랭킹 제한을 수정합니다.
         </p>
       </div>
       <AdminStoreTable stores={stores} />

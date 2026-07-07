@@ -11,6 +11,7 @@ create table if not exists public.profiles (
   report_count int not null default 0,
   hidden_review_count int not null default 0,
   is_admin boolean not null default false,
+  is_synthetic boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -26,6 +27,7 @@ create table if not exists public.stores (
   verification_status text not null default 'pending'
     check (verification_status in ('pending', 'verified', 'rejected')),
   ranking_limited boolean not null default false,
+  is_synthetic boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -40,7 +42,6 @@ create table if not exists public.reviews (
   review_score numeric,
   review_text text,
   photo_url text,
-  revisit_intent text check (revisit_intent is null or revisit_intent in ('yes', 'no', 'unsure')),
   visit_type text,
   price_satisfaction text,
   is_high_score boolean not null default false,
@@ -50,6 +51,7 @@ create table if not exists public.reviews (
   final_weight numeric not null default 1.0,
   is_hidden boolean not null default false,
   excluded_from_score boolean not null default false,
+  is_synthetic boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -86,11 +88,24 @@ create table if not exists public.store_score_cache (
   service_score numeric not null default 0,
   environment_score numeric not null default 0,
   review_count int not null default 0,
-  revisit_intent_rate numeric not null default 0,
+  revisit_rate numeric,
+  unique_reviewer_count int not null default 0,
+  returning_reviewer_count int not null default 0,
   trust_level text not null default 'unknown',
   peer_average_raw_score numeric not null default 0,
   updated_at timestamptz not null default now()
 );
+
+create table if not exists public.scoring_settings (
+  id boolean primary key default true check (id),
+  include_synthetic_reviews boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+insert into public.scoring_settings (id, include_synthetic_reviews)
+values (true, false)
+on conflict (id) do nothing;
 
 create table if not exists public.admin_actions (
   id uuid primary key default gen_random_uuid(),
@@ -104,8 +119,17 @@ create table if not exists public.admin_actions (
 
 create index if not exists stores_region_category_idx on public.stores (region, category);
 create index if not exists stores_category_idx on public.stores (category);
+create index if not exists stores_synthetic_idx
+  on public.stores (is_synthetic)
+  where is_synthetic = true;
+create index if not exists profiles_synthetic_idx
+  on public.profiles (is_synthetic)
+  where is_synthetic = true;
 create index if not exists reviews_store_created_idx on public.reviews (store_id, created_at desc);
 create index if not exists reviews_user_created_idx on public.reviews (user_id, created_at desc);
+create index if not exists reviews_synthetic_idx
+  on public.reviews (store_id, is_synthetic)
+  where is_synthetic = true;
 create index if not exists reviews_visible_score_idx
   on public.reviews (store_id)
   where is_hidden = false and excluded_from_score = false;
@@ -172,8 +196,7 @@ create or replace function public.calculate_quality_weight(
   review_text text,
   photo_url text,
   is_high_score boolean,
-  high_score_reason text,
-  revisit_intent text
+  high_score_reason text
 )
 returns numeric
 language plpgsql
@@ -198,10 +221,6 @@ begin
   if coalesce(is_high_score, false)
     and char_length(coalesce(trim(high_score_reason), '')) >= 10 then
     weight := weight + 0.1;
-  end if;
-
-  if revisit_intent is not null then
-    weight := weight + 0.05;
   end if;
 
   return round(least(1.2, greatest(0.6, weight)), 4);
@@ -328,6 +347,19 @@ begin
 end;
 $$;
 
+create or replace function public.include_synthetic_reviews_in_scoring()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(
+    (select include_synthetic_reviews from public.scoring_settings where id = true),
+    false
+  );
+$$;
+
 create or replace function public.get_peer_average(
   input_region text,
   input_category text
@@ -359,6 +391,7 @@ begin
       and s.category = input_category
       and r.is_hidden = false
       and r.excluded_from_score = false
+      and (public.include_synthetic_reviews_in_scoring() or r.is_synthetic = false)
     group by s.id
   ) scoped;
 
@@ -382,6 +415,7 @@ begin
     where s.category = input_category
       and r.is_hidden = false
       and r.excluded_from_score = false
+      and (public.include_synthetic_reviews_in_scoring() or r.is_synthetic = false)
     group by s.id
   ) scoped;
 
@@ -404,6 +438,7 @@ begin
     join public.reviews r on r.store_id = s.id
     where r.is_hidden = false
       and r.excluded_from_score = false
+      and (public.include_synthetic_reviews_in_scoring() or r.is_synthetic = false)
     group by s.id
   ) scoped;
 
@@ -431,10 +466,12 @@ declare
   taste_avg numeric := 0;
   service_avg numeric := 0;
   environment_avg numeric := 0;
-  revisit_rate numeric := 0;
+  revisit_rate numeric := null;
+  unique_reviewer_count int := 0;
+  returning_reviewer_count int := 0;
   peer_avg numeric := 3;
   avg_user_weight numeric := 1;
-  revisit_score numeric := 1;
+  revisit_score numeric := 0;
   trust_score numeric := 3;
   trust_label text := 'unknown';
 begin
@@ -450,7 +487,6 @@ begin
     coalesce(sum(taste_score * final_weight_calc) / nullif(sum(final_weight_calc), 0), 0),
     coalesce(sum(service_score * final_weight_calc) / nullif(sum(final_weight_calc), 0), 0),
     coalesce(sum(environment_score * final_weight_calc) / nullif(sum(final_weight_calc), 0), 0),
-    coalesce((count(*) filter (where revisit_intent = 'yes'))::numeric / nullif(count(revisit_intent), 0), 0),
     coalesce(avg(user_weight_calc), 1)
   into
     visible_review_count,
@@ -458,7 +494,6 @@ begin
     taste_avg,
     service_avg,
     environment_avg,
-    revisit_rate,
     avg_user_weight
   from (
     select
@@ -469,13 +504,44 @@ begin
     where r.store_id = input_store_id
       and r.is_hidden = false
       and r.excluded_from_score = false
+      and (public.include_synthetic_reviews_in_scoring() or r.is_synthetic = false)
       and r.review_score is not null
   ) weighted_reviews;
+
+  select
+    count(*)::int,
+    coalesce(
+      count(*) filter (
+        where valid_review_count >= 2
+          and last_review_at - first_review_at >= interval '24 hours'
+      ),
+      0
+    )::int
+  into unique_reviewer_count, returning_reviewer_count
+  from (
+    select
+      r.user_id,
+      count(*)::int as valid_review_count,
+      min(r.created_at) as first_review_at,
+      max(r.created_at) as last_review_at
+    from public.reviews r
+    where r.store_id = input_store_id
+      and r.is_hidden = false
+      and r.excluded_from_score = false
+      and (public.include_synthetic_reviews_in_scoring() or r.is_synthetic = false)
+    group by r.user_id
+  ) reviewer_stats;
+
+  if unique_reviewer_count >= 3 then
+    revisit_rate := returning_reviewer_count::numeric / nullif(unique_reviewer_count, 0);
+  else
+    revisit_rate := null;
+  end if;
 
   peer_avg := public.get_peer_average(target_store.region, target_store.category);
   bayesian_raw := ((visible_review_count * raw) + (20 * peer_avg)) / (visible_review_count + 20);
   adjusted := least(5.0, greatest(1.0, 3 + (0.8 * (bayesian_raw - peer_avg))));
-  revisit_score := least(5.0, greatest(1.0, 1 + (4 * revisit_rate)));
+  revisit_score := least(5.0, greatest(0.0, coalesce(revisit_rate, 0) * 5));
   trust_score := least(5.0, greatest(1.0, 1 + (4 * ((avg_user_weight - 0.7) / 0.6))));
 
   if visible_review_count = 0 then
@@ -504,7 +570,9 @@ begin
     service_score,
     environment_score,
     review_count,
-    revisit_intent_rate,
+    revisit_rate,
+    unique_reviewer_count,
+    returning_reviewer_count,
     trust_level,
     peer_average_raw_score,
     updated_at
@@ -519,7 +587,9 @@ begin
     round(service_avg, 4),
     round(environment_avg, 4),
     visible_review_count,
-    round(revisit_rate, 4),
+    case when revisit_rate is null then null else round(revisit_rate, 4) end,
+    unique_reviewer_count,
+    returning_reviewer_count,
     trust_label,
     round(peer_avg, 4),
     now()
@@ -534,7 +604,9 @@ begin
     service_score = excluded.service_score,
     environment_score = excluded.environment_score,
     review_count = excluded.review_count,
-    revisit_intent_rate = excluded.revisit_intent_rate,
+    revisit_rate = excluded.revisit_rate,
+    unique_reviewer_count = excluded.unique_reviewer_count,
+    returning_reviewer_count = excluded.returning_reviewer_count,
     trust_level = excluded.trust_level,
     peer_average_raw_score = excluded.peer_average_raw_score,
     updated_at = now();
@@ -555,6 +627,39 @@ begin
   end loop;
 end;
 $$;
+
+create or replace function public.set_synthetic_reviews_included(include_reviews boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.scoring_settings (id, include_synthetic_reviews, updated_at)
+  values (true, include_reviews, now())
+  on conflict (id) do update
+  set
+    include_synthetic_reviews = excluded.include_synthetic_reviews,
+    updated_at = now();
+
+  perform public.refresh_all_store_scores();
+end;
+$$;
+
+revoke all on function public.set_synthetic_reviews_included(boolean) from public, anon, authenticated;
+
+create or replace function public.set_synthetic_reviews_excluded(exclude_reviews boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  perform public.set_synthetic_reviews_included(not exclude_reviews);
+end;
+$$;
+
+revoke all on function public.set_synthetic_reviews_excluded(boolean) from public, anon, authenticated;
 
 create or replace function public.create_report(
   input_target_type text,
@@ -616,8 +721,7 @@ begin
     new.review_text,
     new.photo_url,
     new.is_high_score,
-    new.high_score_reason,
-    new.revisit_intent
+    new.high_score_reason
   );
   new.user_weight := public.calculate_user_trust_weight(new.user_id);
   new.final_weight := round(new.quality_weight * new.user_weight, 4);
@@ -652,6 +756,7 @@ begin
   new.report_count := old.report_count;
   new.hidden_review_count := old.hidden_review_count;
   new.is_admin := old.is_admin;
+  new.is_synthetic := old.is_synthetic;
   return new;
 end;
 $$;
@@ -678,6 +783,7 @@ begin
   new.store_id := old.store_id;
   new.is_hidden := old.is_hidden;
   new.excluded_from_score := old.excluded_from_score;
+  new.is_synthetic := old.is_synthetic;
   return new;
 end;
 $$;
@@ -806,6 +912,7 @@ alter table public.reviews enable row level security;
 alter table public.reports enable row level security;
 alter table public.penalty_logs enable row level security;
 alter table public.store_score_cache enable row level security;
+alter table public.scoring_settings enable row level security;
 alter table public.admin_actions enable row level security;
 
 drop policy if exists "profiles public read" on public.profiles;
@@ -910,6 +1017,19 @@ drop policy if exists "store score cache public read" on public.store_score_cach
 create policy "store score cache public read"
 on public.store_score_cache for select
 using (true);
+
+drop policy if exists "scoring settings admin read" on public.scoring_settings;
+create policy "scoring settings admin read"
+on public.scoring_settings for select
+to authenticated
+using (public.current_user_is_admin());
+
+drop policy if exists "scoring settings admin update" on public.scoring_settings;
+create policy "scoring settings admin update"
+on public.scoring_settings for update
+to authenticated
+using (public.current_user_is_admin())
+with check (public.current_user_is_admin());
 
 drop policy if exists "admin actions admin all" on public.admin_actions;
 create policy "admin actions admin all"

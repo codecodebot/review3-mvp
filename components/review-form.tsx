@@ -9,7 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { PRICE_SATISFACTION, REVISIT_INTENTS, VISIT_TYPES } from "@/lib/constants";
+import {
+  PRICE_SATISFACTION,
+  PRICE_SATISFACTION_LABELS,
+  VISIT_TYPES,
+  VISIT_TYPE_LABELS
+} from "@/lib/constants";
 import { calculateReviewScore } from "@/lib/scoring";
 
 type ReviewFormProps = {
@@ -21,7 +26,7 @@ function SubmitButton() {
 
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? "Submitting..." : "Submit review"}
+      {pending ? "제출 중..." : "리뷰 제출"}
     </Button>
   );
 }
@@ -40,14 +45,14 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Write Review</CardTitle>
+        <CardTitle>리뷰 작성</CardTitle>
       </CardHeader>
       <CardContent>
         <form action={createReviewAction} className="space-y-5">
           <input type="hidden" name="store_id" value={storeId} />
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="taste_score">Taste</Label>
+              <Label htmlFor="taste_score">맛</Label>
               <Input
                 id="taste_score"
                 name="taste_score"
@@ -60,7 +65,7 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="service_score">Service</Label>
+              <Label htmlFor="service_score">서비스</Label>
               <Input
                 id="service_score"
                 name="service_score"
@@ -73,7 +78,7 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="environment_score">Environment</Label>
+              <Label htmlFor="environment_score">공간</Label>
               <Input
                 id="environment_score"
                 name="environment_score"
@@ -88,41 +93,31 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
           </div>
 
           <div className="rounded-md border bg-muted p-3 text-sm">
-            Calculated individual review score: <strong>{reviewScore.toFixed(2)}</strong>
+            계산된 리뷰 점수: <strong>{reviewScore.toFixed(2)}</strong>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="review_text">Review text</Label>
-            <Textarea id="review_text" name="review_text" placeholder="What stood out?" />
+            <Label htmlFor="review_text">리뷰 내용</Label>
+            <Textarea id="review_text" name="review_text" placeholder="무엇이 인상적이었나요?" />
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="revisit_intent">Revisit intent</Label>
-              <Select id="revisit_intent" name="revisit_intent" defaultValue="unsure">
-                {REVISIT_INTENTS.map((intent) => (
-                  <option key={intent} value={intent}>
-                    {intent}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="visit_type">Visit type</Label>
+              <Label htmlFor="visit_type">방문 유형</Label>
               <Select id="visit_type" name="visit_type" defaultValue="friends">
                 {VISIT_TYPES.map((visitType) => (
                   <option key={visitType} value={visitType}>
-                    {visitType}
+                    {VISIT_TYPE_LABELS[visitType]}
                   </option>
                 ))}
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="price_satisfaction">Price satisfaction</Label>
+              <Label htmlFor="price_satisfaction">가격 만족도</Label>
               <Select id="price_satisfaction" name="price_satisfaction" defaultValue="fair">
                 {PRICE_SATISFACTION.map((value) => (
                   <option key={value} value={value}>
-                    {value}
+                    {PRICE_SATISFACTION_LABELS[value]}
                   </option>
                 ))}
               </Select>
@@ -130,19 +125,19 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="photo_url">Photo URL</Label>
+            <Label htmlFor="photo_url">사진 URL</Label>
             <Input id="photo_url" name="photo_url" type="url" placeholder="https://..." />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="high_score_reason">
-              High-score reason {requiresHighScoreReason ? "(required)" : "(optional)"}
+              고득점 이유 {requiresHighScoreReason ? "(필수)" : "(선택)"}
             </Label>
             <Textarea
               id="high_score_reason"
               name="high_score_reason"
               required={requiresHighScoreReason}
-              placeholder="Required when the calculated review score is 4.5 or higher."
+              placeholder="계산된 리뷰 점수가 4.5 이상이면 필수입니다."
             />
           </div>
 

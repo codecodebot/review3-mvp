@@ -2,6 +2,7 @@ import { updateStoreModerationAction } from "@/app/actions/admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
 import {
   Table,
   TableBody,
@@ -19,8 +20,8 @@ type AdminStoreTableProps = {
 export function AdminStoreTable({ stores }: AdminStoreTableProps) {
   if (!stores.length) {
     return (
-      <div className="rounded-lg border bg-card p-8 text-center text-sm text-muted-foreground">
-        No stores found.
+      <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
+        매장이 없습니다.
       </div>
     );
   }
@@ -29,9 +30,9 @@ export function AdminStoreTable({ stores }: AdminStoreTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Store</TableHead>
-          <TableHead>Scores</TableHead>
-          <TableHead>Moderation</TableHead>
+          <TableHead>매장</TableHead>
+          <TableHead>점수</TableHead>
+          <TableHead>관리</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -40,13 +41,15 @@ export function AdminStoreTable({ stores }: AdminStoreTableProps) {
             <TableCell>
               <div className="font-medium">{store.name}</div>
               <div className="text-xs text-muted-foreground">
-                {store.region} · {store.category}
+                {formatRegionLabel(store.region)} / {formatCategoryLabel(store.category)}
               </div>
             </TableCell>
             <TableCell>
-              <div className="text-sm">Adjusted {store.score?.adjusted_score.toFixed(2) ?? "N/A"}</div>
+              <div className="text-sm">
+                보정 점수 {store.score?.adjusted_score.toFixed(2) ?? "없음"}
+              </div>
               <div className="text-xs text-muted-foreground">
-                RAW {store.score?.raw_score.toFixed(2) ?? "N/A"} · {store.score?.review_count ?? 0} reviews
+                원점수 {store.score?.raw_score.toFixed(2) ?? "없음"} / 리뷰 {store.score?.review_count ?? 0}개
               </div>
             </TableCell>
             <TableCell>
@@ -55,12 +58,12 @@ export function AdminStoreTable({ stores }: AdminStoreTableProps) {
                 <Select
                   name="verification_status"
                   defaultValue={store.verification_status}
-                  aria-label="Verification status"
+                  aria-label="인증 상태"
                   className="w-36"
                 >
-                  <option value="pending">pending</option>
-                  <option value="verified">verified</option>
-                  <option value="rejected">rejected</option>
+                  <option value="pending">확인 중</option>
+                  <option value="verified">인증됨</option>
+                  <option value="rejected">거절됨</option>
                 </Select>
                 <label className="flex items-center gap-2 text-sm">
                   <Input
@@ -69,10 +72,10 @@ export function AdminStoreTable({ stores }: AdminStoreTableProps) {
                     defaultChecked={store.ranking_limited}
                     className="h-4 w-4"
                   />
-                  Limit ranking
+                  랭킹 제한
                 </label>
                 <Button type="submit" size="sm" variant="outline">
-                  Save
+                  저장
                 </Button>
               </form>
             </TableCell>

@@ -46,7 +46,7 @@ function authErrorMessage(error: unknown) {
     return getErrorMessage(error);
   }
 
-  return "Authentication failed.";
+  return "인증에 실패했습니다.";
 }
 
 export async function loginAction(formData: FormData) {
@@ -56,7 +56,7 @@ export async function loginAction(formData: FormData) {
   const returnTo = safeReturnTo(stringValue(formData, "return_to"));
 
   if (!email || !password) {
-    loginRedirect({ error: "Email and password are required.", returnTo });
+    loginRedirect({ error: "이메일과 비밀번호가 필요합니다.", returnTo });
   }
 
   try {
@@ -68,7 +68,7 @@ export async function loginAction(formData: FormData) {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error || !data.user) {
-    loginRedirect({ error: error?.message ?? "Unable to log in.", returnTo });
+    loginRedirect({ error: error?.message ?? "로그인할 수 없습니다.", returnTo });
   }
 
   try {
@@ -89,11 +89,11 @@ export async function signupAction(formData: FormData) {
   const returnTo = safeReturnTo(stringValue(formData, "return_to"));
 
   if (!email || !password) {
-    loginRedirect({ error: "Email and password are required.", returnTo });
+    loginRedirect({ error: "이메일과 비밀번호가 필요합니다.", returnTo });
   }
 
   if (password.length < 6) {
-    loginRedirect({ error: "Password must be at least 6 characters.", returnTo });
+    loginRedirect({ error: "비밀번호는 6자 이상이어야 합니다.", returnTo });
   }
 
   try {
@@ -111,12 +111,12 @@ export async function signupAction(formData: FormData) {
   });
 
   if (error || !data.user) {
-    loginRedirect({ error: error?.message ?? "Unable to sign up.", returnTo });
+    loginRedirect({ error: error?.message ?? "가입할 수 없습니다.", returnTo });
   }
 
   if (!data.session) {
     loginRedirect({
-      message: "Signup created. Check your email before logging in.",
+      message: "가입이 생성되었습니다. 로그인 전 이메일을 확인해 주세요.",
       returnTo
     });
   }

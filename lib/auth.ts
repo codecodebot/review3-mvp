@@ -15,8 +15,8 @@ export class AuthSetupError extends Error {
   constructor(kind: SupabaseIssueKind) {
     super(
       kind === "connection"
-        ? "Supabase connection unavailable. The server could not reach Supabase; check local network access and retry."
-        : "Database setup required before signup or login can create profiles."
+        ? "Supabase 연결 불가. 서버가 Supabase에 연결하지 못했습니다. 네트워크를 확인한 뒤 다시 시도해 주세요."
+        : "데이터베이스 설정이 필요합니다. 가입 또는 로그인 전에 profiles 테이블을 준비해 주세요."
     );
     this.name = "AuthSetupError";
     this.kind = kind;
@@ -30,7 +30,7 @@ function nicknameFromUser(user: User) {
     return metadataNickname.trim();
   }
 
-  return user.email?.split("@")[0] ?? "Reviewer";
+  return user.email?.split("@")[0] ?? "리뷰어";
 }
 
 export async function assertProfilesTableReady(supabase: SupabaseServerClient) {
@@ -48,7 +48,7 @@ export async function assertProfilesTableReady(supabase: SupabaseServerClient) {
     throw new AuthSetupError("database");
   }
 
-  throw new Error(`Unable to check profile table: ${getErrorMessage(error)}`);
+  throw new Error(`프로필 테이블을 확인할 수 없습니다: ${getErrorMessage(error)}`);
 }
 
 export async function ensureProfileForUser(supabase: SupabaseServerClient, user: User) {
@@ -69,6 +69,6 @@ export async function ensureProfileForUser(supabase: SupabaseServerClient, user:
       throw new AuthSetupError("database");
     }
 
-    throw new Error(`Unable to ensure user profile: ${getErrorMessage(error)}`);
+    throw new Error(`사용자 프로필을 준비할 수 없습니다: ${getErrorMessage(error)}`);
   }
 }

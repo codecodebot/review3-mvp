@@ -3,7 +3,12 @@ import { StoreCard } from "@/components/store-card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { STORE_CATEGORIES, STORE_REGIONS } from "@/lib/constants";
+import {
+  STORE_CATEGORIES,
+  STORE_REGIONS,
+  formatCategoryLabel,
+  formatRegionLabel
+} from "@/lib/constants";
 import { getStores } from "@/lib/queries";
 import {
   getSupabaseIssueKind,
@@ -39,38 +44,38 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
   }
 
   return (
-    <div className="container py-8">
+    <div className="container py-8 sm:py-10">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold tracking-normal">Stores</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Filter by region and category. RAW score is never hidden.
+          <h1 className="text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">매장 목록</h1>
+          <p className="mt-2 text-sm leading-6 text-zinc-500">
+            지역과 카테고리로 필터링합니다. 원점수는 항상 함께 표시됩니다.
           </p>
         </div>
         <form className="grid gap-3 sm:grid-cols-[160px_160px_auto]" action="/stores">
           <div className="space-y-2">
-            <Label htmlFor="region">Region</Label>
+            <Label htmlFor="region">지역</Label>
             <Select id="region" name="region" defaultValue={searchParams?.region ?? "all"}>
-              <option value="all">All regions</option>
+              <option value="all">전체 지역</option>
               {STORE_REGIONS.map((region) => (
                 <option key={region} value={region}>
-                  {region}
+                  {formatRegionLabel(region)}
                 </option>
               ))}
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
+            <Label htmlFor="category">카테고리</Label>
             <Select id="category" name="category" defaultValue={searchParams?.category ?? "all"}>
-              <option value="all">All categories</option>
+              <option value="all">전체 카테고리</option>
               {STORE_CATEGORIES.map((category) => (
                 <option key={category} value={category}>
-                  {category}
+                  {formatCategoryLabel(category)}
                 </option>
               ))}
             </Select>
           </div>
-          <Button type="submit">Apply</Button>
+          <Button type="submit">적용</Button>
         </form>
       </div>
 
@@ -83,8 +88,8 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
           ))}
         </div>
       ) : (
-        <div className="rounded-lg border bg-card p-10 text-center text-sm text-muted-foreground">
-          No stores match the selected filters.
+        <div className="rounded-lg border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500">
+          선택한 조건에 맞는 매장이 없습니다.
         </div>
       )}
     </div>

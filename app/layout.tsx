@@ -7,14 +7,14 @@ import { cn } from "@/lib/utils";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Trust Weighted Reviews MVP",
-  description: "Restaurant and cafe reviews with RAW and adjusted scores."
+  title: "신뢰 기반 리뷰 MVP",
+  description: "원점수와 보정 점수를 함께 보여주는 식당·카페 리뷰입니다."
 };
 
 const navItems = [
-  { href: "/stores", label: "Stores" },
-  { href: "/ranking", label: "Ranking" },
-  { href: "/admin", label: "Admin" }
+  { href: "/stores", label: "매장 목록" },
+  { href: "/ranking", label: "랭킹" },
+  { href: "/admin", label: "관리자" }
 ];
 
 async function getHeaderUserEmail() {
@@ -38,13 +38,13 @@ export default async function RootLayout({
   const userEmail = await getHeaderUserEmail();
 
   return (
-    <html lang="en">
+    <html lang="ko">
       <body>
         <div className="min-h-screen">
-          <header className="border-b bg-card">
+          <header className="border-b border-zinc-200 bg-white/95 backdrop-blur">
             <div className="container flex min-h-16 flex-wrap items-center justify-between gap-4 py-3">
-              <Link href="/" className="text-base font-semibold tracking-normal">
-                TrustTable MVP
+              <Link href="/" className="text-base font-bold tracking-normal text-zinc-950">
+                신뢰리뷰 MVP
               </Link>
               <div className="flex flex-wrap items-center justify-end gap-3">
                 <nav className="flex items-center gap-2 text-sm">
@@ -52,7 +52,7 @@ export default async function RootLayout({
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="rounded-md px-3 py-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                      className="rounded-md px-3 py-2 font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950"
                     >
                       {item.label}
                     </Link>
@@ -60,10 +60,12 @@ export default async function RootLayout({
                 </nav>
                 {userEmail ? (
                   <div className="flex items-center gap-3">
-                    <span className="max-w-48 truncate text-sm text-muted-foreground">{userEmail}</span>
+                    <span className="max-w-48 truncate text-sm font-medium text-zinc-500">
+                      {userEmail}
+                    </span>
                     <form action={logoutAction}>
                       <Button type="submit" variant="outline" size="sm">
-                        Log out
+                        로그아웃
                       </Button>
                     </form>
                   </div>
@@ -72,7 +74,7 @@ export default async function RootLayout({
                     href="/login"
                     className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
                   >
-                    Log in
+                    로그인
                   </Link>
                 )}
               </div>

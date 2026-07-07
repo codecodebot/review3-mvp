@@ -19,7 +19,7 @@ function scoreValue(formData: FormData, key: string) {
   const value = Number(stringValue(formData, key));
 
   if (!Number.isInteger(value) || value < 1 || value > 5) {
-    throw new Error(`${key} must be an integer between 1 and 5.`);
+    throw new Error(`${key} 값은 1부터 5까지의 정수여야 합니다.`);
   }
 
   return value;
@@ -44,11 +44,11 @@ export async function createReviewAction(formData: FormData) {
   const highScoreReason = optionalStringValue(formData, "high_score_reason");
 
   if (!storeId) {
-    throw new Error("Store id is required.");
+    throw new Error("매장 ID가 필요합니다.");
   }
 
   if (reviewScore >= 4.5 && (!highScoreReason || highScoreReason.length < 10)) {
-    throw new Error("High-score reviews require a reason of at least 10 characters.");
+    throw new Error("고득점 리뷰는 10자 이상의 이유가 필요합니다.");
   }
 
   const { error } = await supabase.from("reviews").insert({
@@ -60,7 +60,6 @@ export async function createReviewAction(formData: FormData) {
     review_score: reviewScore,
     review_text: optionalStringValue(formData, "review_text"),
     photo_url: optionalStringValue(formData, "photo_url"),
-    revisit_intent: optionalStringValue(formData, "revisit_intent") as "yes" | "no" | "unsure" | null,
     visit_type: optionalStringValue(formData, "visit_type"),
     price_satisfaction: optionalStringValue(formData, "price_satisfaction"),
     is_high_score: reviewScore >= 4.5,
@@ -68,7 +67,7 @@ export async function createReviewAction(formData: FormData) {
   });
 
   if (error) {
-    throw new Error(`Unable to create review: ${error.message}`);
+    throw new Error(`리뷰를 만들 수 없습니다: ${error.message}`);
   }
 
   await supabase.rpc("recalculate_profile_stats", { input_user_id: user.id });

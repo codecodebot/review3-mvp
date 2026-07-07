@@ -2,25 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 45 920;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/woff2/PretendardVariable.woff2")
+    format("woff2-variations");
+}
+
 @layer base {
   :root {
-    --background: 42 33% 98%;
-    --foreground: 222 30% 12%;
+    --background: 240 5% 97%;
+    --foreground: 240 10% 4%;
     --card: 0 0% 100%;
-    --card-foreground: 222 30% 12%;
-    --primary: 167 54% 28%;
+    --card-foreground: 240 10% 4%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 34 68% 90%;
-    --secondary-foreground: 222 30% 12%;
-    --muted: 40 18% 92%;
-    --muted-foreground: 218 12% 42%;
-    --accent: 207 58% 91%;
-    --accent-foreground: 222 30% 12%;
+    --secondary: 214 95% 93%;
+    --secondary-foreground: 221 83% 31%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 240 10% 4%;
     --destructive: 0 71% 48%;
     --destructive-foreground: 0 0% 100%;
-    --border: 36 16% 82%;
-    --input: 36 16% 82%;
-    --ring: 167 54% 28%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 221 83% 53%;
   }
 
   * {
@@ -29,5 +38,24 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family:
+      "Pretendard",
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
+    font-weight: 400;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply text-zinc-950;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  p {
+    @apply text-zinc-700;
   }
 }
