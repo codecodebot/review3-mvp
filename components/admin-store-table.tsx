@@ -46,10 +46,10 @@ export function AdminStoreTable({ stores }: AdminStoreTableProps) {
             </TableCell>
             <TableCell>
               <div className="text-sm">
-                보정 점수 {store.score?.adjusted_score.toFixed(2) ?? "없음"}
+                TT 점수 {store.score?.adjusted_score.toFixed(2) ?? "없음"}
               </div>
               <div className="text-xs text-muted-foreground">
-                원점수 {store.score?.raw_score.toFixed(2) ?? "없음"} / 리뷰 {store.score?.review_count ?? 0}개
+                RAW {store.score?.raw_score.toFixed(2) ?? "없음"} / 리뷰 {store.score?.review_count ?? 0}개
               </div>
             </TableCell>
             <TableCell>

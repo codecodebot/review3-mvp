@@ -9,7 +9,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Trusttable",
-  description: "원점수와 보정 점수를 함께 보여주는 식당·카페 리뷰입니다.",
+  description: "RAW Score와 TT Score를 함께 보여주는 리뷰 신뢰 분석 대시보드입니다.",
   icons: {
     icon: "/icon.png",
     apple: "/icon.png"
@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 const navItems = [
   { href: "/stores", label: "매장 목록" },
   { href: "/ranking", label: "랭킹" },
+  { href: "/tt-index", label: "TT Index란?" },
   { href: "/admin", label: "관리자" }
 ];
 

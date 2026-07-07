@@ -55,7 +55,7 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
             매장별 신뢰 점수 현황
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500">
-            지역과 카테고리별로 원점수, 보정 점수, 인증 상태, 최근 상승 신호를 비교합니다.
+            지역과 카테고리별로 RAW Score, TT Score, 인증 상태, 최근 상승 신호를 비교합니다.
           </p>
         </div>
         <form className="grid gap-3 sm:grid-cols-[160px_160px_auto]" action="/stores">

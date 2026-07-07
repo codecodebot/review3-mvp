@@ -39,21 +39,21 @@ function formatPercent(value: number | null | undefined) {
 }
 
 function scoreExplanation(store: StoreRankCardData) {
-  const adjustedDelta = store.normalizedScore - store.rawScore;
+  const ttDelta = store.normalizedScore - store.rawScore;
 
   if (store.rising?.isRising) {
     return "최근 유효 리뷰 점수가 과거 평균보다 뚜렷하게 높습니다.";
   }
 
-  if (adjustedDelta < -0.25) {
-    return "원점수가 시장 평균 보정과 인증 가중치 적용 후 낮아졌습니다.";
+  if (ttDelta < -0.25) {
+    return "RAW 점수가 시장 평균과 인증 가중치 적용 후 더 신중하게 해석됩니다.";
   }
 
-  if (adjustedDelta > 0.15) {
-    return "시장 평균 대비 성과가 좋아 보정 점수가 원점수보다 높습니다.";
+  if (ttDelta > 0.15) {
+    return "시장 평균 대비 리뷰 신호가 좋아 TT 점수가 RAW보다 높게 나타납니다.";
   }
 
-  return "원점수와 보정 점수가 안정적으로 정렬되어 있습니다.";
+  return "RAW Score와 TT Score가 안정적으로 정렬되어 있습니다.";
 }
 
 function MiniTrend({ store, weights }: StoreRankCardProps) {
@@ -134,17 +134,26 @@ export function StoreRankCard({ store, rank, weights }: StoreRankCardProps) {
         </div>
 
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4">
-          <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
-            보정 점수
-          </div>
-          <div className="mt-2 flex items-end justify-between gap-3">
-            <div className="text-4xl font-semibold tabular-nums tracking-tight text-zinc-950">
-              {formatScore(store.normalizedScore)}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                RAW Score
+              </div>
+              <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-zinc-950">
+                {formatScore(store.rawScore)}
+              </div>
             </div>
-            <ScoreDelta adjustedScore={store.normalizedScore} rawScore={store.rawScore} />
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                TT Score
+              </div>
+              <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-zinc-950">
+                {formatScore(store.normalizedScore)}
+              </div>
+            </div>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs font-medium text-zinc-500">
-            <span>원점수 {formatScore(store.rawScore)}</span>
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-zinc-500">
+            <ScoreDelta adjustedScore={store.normalizedScore} rawScore={store.rawScore} />
             <span>시장 평균 대비 {formatDelta(store.rawAverageDelta)}</span>
           </div>
           <div className="mt-3 h-1.5 rounded-full bg-zinc-200">

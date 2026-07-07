@@ -17,7 +17,7 @@ const trustSignals = [
   "Verified reviews weighted higher",
   "Unverified reviews weighted lower",
   "Recent review trend considered",
-  "All stores normalized around market average 3.0"
+  "All stores aligned around TT Score 3.0"
 ];
 
 export default function HomePage({ searchParams }: HomePageProps) {
@@ -50,8 +50,8 @@ export default function HomePage({ searchParams }: HomePageProps) {
                 inflated ratings를 신뢰 가능한 점수로 다시 계산합니다.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-zinc-600">
-                Trusttable은 원점수를 숨기지 않고, 구매 인증·최근 리뷰 흐름·리뷰어 신뢰 패턴을
-                반영해 보정 점수를 계산하는 리뷰 신뢰 분석 대시보드입니다.
+                Trusttable은 RAW Score를 숨기지 않고, 구매 인증·최근 리뷰 흐름·리뷰어 신뢰 패턴을
+                반영해 TT Score를 계산하는 리뷰 신뢰 분석 대시보드입니다.
               </p>
             </div>
 
@@ -86,8 +86,8 @@ export default function HomePage({ searchParams }: HomePageProps) {
               }}
             />
             <div className="grid gap-3 sm:grid-cols-2">
-              <MetricCard label="Raw" value="4.42" helper="사용자 리뷰 원점수" />
-              <MetricCard label="Adjusted" value="3.34" helper="시장 평균 3.0 보정" />
+              <MetricCard label="RAW Score" value="4.42" helper="사용자 리뷰 원래 평균" />
+              <MetricCard label="TT Score" value="3.34" helper="시장 평균선 3.0 기준" />
             </div>
           </div>
         </div>
@@ -107,10 +107,10 @@ export default function HomePage({ searchParams }: HomePageProps) {
       <section className="mt-8 grid gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>원점수와 보정 점수 동시 공개</CardTitle>
+            <CardTitle>RAW Score와 TT Score 동시 공개</CardTitle>
           </CardHeader>
           <CardContent className="text-sm leading-6 text-zinc-600">
-            Trusttable은 원점수를 숨기지 않습니다. 보정 점수가 왜 달라졌는지 원점수와 함께
+            Trusttable은 RAW Score를 숨기지 않습니다. TT Score가 왜 달라졌는지 RAW Score와 함께
             비교할 수 있게 보여줍니다.
           </CardContent>
         </Card>

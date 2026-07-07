@@ -207,9 +207,9 @@ function ScoringWeightsPanel({
             </p>
           </div>
           <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-            <div className="font-semibold text-zinc-950">시장 평균 보정</div>
+            <div className="font-semibold text-zinc-950">TT Score 평균선</div>
             <p className="mt-1 leading-6">
-              모든 매장의 보정 점수는 시장 평균 3.0을 중심으로 정렬됩니다.
+              모든 매장의 TT Score는 시장 평균 3.0을 중심으로 정렬됩니다.
             </p>
           </div>
         </div>
@@ -225,27 +225,27 @@ function DashboardSummary({
   stores: RankedStore[];
   rawAverage: number;
 }) {
-  const averageAdjusted = average(stores.map((store) => store.normalizedScore));
+  const averageTtScore = average(stores.map((store) => store.normalizedScore));
   const averageRaw = average(stores.map((store) => store.rawScore));
   const allReviews = stores.flatMap((store) => store.ranking_reviews);
   const verifiedReviewRatio = allReviews.length
     ? allReviews.filter((review) => review.purchase_verified !== false).length / allReviews.length
     : 0;
   const risingCount = stores.filter((store) => store.rising?.isRising).length;
-  const inflationGap = averageRaw - averageAdjusted;
+  const inflationGap = averageRaw - averageTtScore;
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
       <MetricCard
-        label="Average Adjusted"
-        value={formatScore(averageAdjusted)}
+        label="Average TT Score"
+        value={formatScore(averageTtScore)}
         helper="시장 평균 3.0 기준"
       />
-      <MetricCard label="Average Raw" value={formatScore(rawAverage)} helper="최근성·인증 가중 적용" />
+      <MetricCard label="Average RAW Score" value={formatScore(rawAverage)} helper="최근성·인증 가중 적용" />
       <MetricCard
         label="Inflation Gap"
         value={formatSigned(inflationGap)}
-        helper="원점수와 보정 평균 차이"
+        helper="RAW와 TT 평균 차이"
       />
       <MetricCard
         label="Verified Reviews"
@@ -273,20 +273,20 @@ function TopStoreBrief({ store }: { store: RankedStore }) {
             #{1} {store.name}
           </h2>
           <p className="mt-2 text-sm leading-6 text-zinc-300">
-            보정 점수 기준 현재 가장 높은 매장입니다. 원점수, 구매 인증 가중치, 최근 리뷰 흐름을
+            TT Score 기준 현재 가장 높은 매장입니다. RAW Score, 구매 인증 가중치, 최근 리뷰 흐름을
             함께 반영했습니다.
           </p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <div className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-400">
-            Adjusted Score
+            TT Score
           </div>
           <div className="mt-2 text-5xl font-semibold tabular-nums tracking-tight text-white">
             {formatScore(store.normalizedScore)}
           </div>
           <div className="mt-3 flex justify-between text-sm text-zinc-300">
-            <span>Raw {formatScore(store.rawScore)}</span>
-            <span>Market {formatSigned(store.rawAverageDelta)}</span>
+            <span>RAW Score {formatScore(store.rawScore)}</span>
+            <span>평균 대비 {formatSigned(store.rawAverageDelta)}</span>
           </div>
         </div>
       </CardContent>
@@ -300,14 +300,14 @@ function ScoreComparisonChart({ stores }: { stores: RankedStore[] }) {
   return (
     <Card>
       <CardHeader className="pb-4">
-        <CardTitle>원점수와 보정 점수 비교</CardTitle>
+        <CardTitle>RAW Score와 TT Score 비교</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {previewStores.map((store) => (
           <div key={store.id} className="grid gap-2 sm:grid-cols-[minmax(160px,1fr)_2fr]">
             <div>
               <div className="truncate text-sm font-semibold text-zinc-950">{store.name}</div>
-              <div className="text-xs text-zinc-500">보정 {formatScore(store.normalizedScore)}</div>
+              <div className="text-xs text-zinc-500">TT {formatScore(store.normalizedScore)}</div>
             </div>
             <div className="space-y-2">
               <div className="h-1.5 rounded-full bg-zinc-100">
@@ -330,11 +330,11 @@ function ScoreComparisonChart({ stores }: { stores: RankedStore[] }) {
         <div className="flex gap-4 text-xs font-medium text-zinc-500">
           <span className="inline-flex items-center gap-1.5">
             <span className="h-1.5 w-4 rounded-full bg-zinc-400" />
-            원점수
+            RAW Score
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="h-1.5 w-4 rounded-full bg-zinc-950" />
-            보정 점수
+            TT Score
           </span>
         </div>
       </CardContent>
@@ -347,7 +347,7 @@ function MethodologyCard() {
     "Verified reviews weighted higher",
     "Unverified reviews weighted lower",
     "Recent review trend considered",
-    "All stores normalized around market average 3.0"
+    "All stores aligned around TT Score 3.0"
   ];
 
   return (
@@ -360,8 +360,9 @@ function MethodologyCard() {
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-sm leading-6 text-zinc-800">
-          adjusted score = raw score normalized around 3.0 + review recency weight +
-          verification weight + reliability penalty
+          TT Score = Store RAW Score - Market Average RAW Score + 3.0
+          <br />
+          RAW Score includes review recency, purchase verification, and reliability weights
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
           {labels.map((label) => (
@@ -374,8 +375,9 @@ function MethodologyCard() {
           ))}
         </div>
         <p className="text-sm leading-6 text-zinc-500">
-          Trusttable은 원점수를 숨기지 않습니다. 원점수를 먼저 계산한 뒤 전체 매장 평균을 기준으로
-          3.0 주변에 정규화하고, 리뷰 최신성·구매 인증·사용자 신뢰 패턴을 명확한 규칙으로 반영합니다.
+          Trusttable은 RAW Score를 숨기지 않습니다. RAW Score를 먼저 계산한 뒤 전체 매장 평균을
+          기준으로 3.0 주변에 정렬하고, 리뷰 최신성·구매 인증·사용자 신뢰 패턴을 명확한 규칙으로
+          반영합니다.
         </p>
       </CardContent>
     </Card>
@@ -430,11 +432,11 @@ export function RankingTable({ stores }: RankingTableProps) {
                 Store Ranking
               </p>
               <h2 className="mt-2 text-xl font-semibold tracking-tight text-zinc-950">
-                보정 점수 기준 상위 매장
+                TT Score 기준 상위 매장
               </h2>
             </div>
             <p className="hidden text-sm text-zinc-500 sm:block">
-              원점수와 보정 점수를 항상 함께 표시합니다.
+              RAW Score와 TT Score를 항상 함께 표시합니다.
             </p>
           </div>
           <div className="space-y-3">

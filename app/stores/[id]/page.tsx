@@ -104,13 +104,13 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
                 <RevisitRateDetail score={store.score} />
               </div>
               <div>
-                <div className="text-muted-foreground">랭킹 원점수 평균</div>
+                <div className="text-muted-foreground">시장 평균 RAW</div>
                 <div className="font-medium">
                   {store.score?.peer_average_raw_score.toFixed(2) ?? "없음"}
                 </div>
               </div>
               <div>
-                <div className="text-muted-foreground">보정 랭킹 점수</div>
+                <div className="text-muted-foreground">TT 점수</div>
                 <div className="font-medium">{store.score?.ranking_score.toFixed(2) ?? "없음"}</div>
               </div>
             </div>

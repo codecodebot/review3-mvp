@@ -16,7 +16,7 @@ function formatDelta(value: number) {
 export function ScoreDelta({
   adjustedScore,
   rawScore,
-  label = "원점수 대비",
+  label = "TT-RAW",
   className
 }: ScoreDeltaProps) {
   const delta = adjustedScore - rawScore;

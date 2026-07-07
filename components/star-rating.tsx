@@ -40,7 +40,7 @@ export function StarRating({
   max = 5,
   size = "md",
   showValue = true,
-  label = "보정 점수",
+  label = "TT 점수",
   className
 }: StarRatingProps) {
   const safeMax = Number.isFinite(max) ? Math.max(1, Math.floor(max)) : 5;
@@ -51,7 +51,7 @@ export function StarRating({
     <div
       className={cn("inline-flex items-center gap-2", className)}
       role="img"
-      aria-label={`${label} ${safeValue.toFixed(2)}점, ${safeMax}점 만점`}
+      aria-label={`${label} ${safeValue.toFixed(2)}점`}
     >
       <div className={cn("flex items-center", gapClass[size])}>
         {Array.from({ length: safeMax }, (_, index) => {
