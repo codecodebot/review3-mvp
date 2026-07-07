@@ -16,6 +16,24 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function RatingTextMismatchBadge() {
+  return (
+    <span className="group relative inline-flex">
+      <Badge
+        variant="warning"
+        className="cursor-help px-2 py-0.5 text-[10px]"
+        tabIndex={0}
+        aria-label="점수-내용 불일치: 높은 점수와 부정적인 리뷰 내용이 함께 감지되었습니다."
+      >
+        불일치
+      </Badge>
+      <span className="pointer-events-none absolute left-1/2 top-6 z-20 hidden w-64 -translate-x-1/2 rounded-md border border-amber-200 bg-white px-3 py-2 text-xs leading-5 text-zinc-700 shadow-lg shadow-zinc-950/5 group-hover:block group-focus-within:block">
+        높은 점수와 부정적인 리뷰 내용이 함께 감지되었습니다.
+      </span>
+    </span>
+  );
+}
+
 export function ReviewCard({ review }: ReviewCardProps) {
   const isDemoReview = review.is_synthetic || review.profile?.is_synthetic;
   const purchaseVerified = review.purchase_verified ?? true;
@@ -40,6 +58,7 @@ export function ReviewCard({ review }: ReviewCardProps) {
               >
                 {purchaseVerified ? "구매 인증" : "구매 미인증"}
               </Badge>
+              {review.rating_text_mismatch ? <RatingTextMismatchBadge /> : null}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">{formatDate(review.created_at)}</p>
           </div>
@@ -73,9 +92,9 @@ export function ReviewCard({ review }: ReviewCardProps) {
           <a
             href={review.photo_url}
             target="_blank"
-          rel="noreferrer"
-          className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-        >
+            rel="noreferrer"
+            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+          >
             사진 보기
           </a>
         ) : null}

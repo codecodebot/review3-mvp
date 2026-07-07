@@ -54,6 +54,9 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
     notFound();
   }
 
+  const mismatchReviewCount = reviews.filter((review) => review.rating_text_mismatch).length;
+  const mismatchReviewRate = reviews.length ? (mismatchReviewCount / reviews.length) * 100 : 0;
+
   return (
     <div className="container py-8">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -113,6 +116,16 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
                 <div className="text-muted-foreground">TT 점수</div>
                 <div className="font-medium">{store.score?.ranking_score.toFixed(2) ?? "없음"}</div>
               </div>
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 text-sm">
+              <div className="font-semibold text-zinc-950">리뷰 신호</div>
+              <div className="mt-2 text-zinc-700">
+                점수-내용 불일치 리뷰 {mismatchReviewCount}개
+                <span className="text-zinc-500"> · 전체 리뷰 대비 {mismatchReviewRate.toFixed(1)}%</span>
+              </div>
+              <p className="mt-2 text-xs leading-5 text-zinc-500">
+                높은 점수와 부정적인 리뷰 내용이 함께 감지된 보조 신뢰도 지표입니다.
+              </p>
             </div>
           </CardContent>
         </Card>

@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { calculateReviewScore } from "@/lib/scoring";
+import { analyzeReviewSentiment } from "@/lib/sentiment";
+import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/types";
 
 function stringValue(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -42,6 +44,7 @@ export async function createReviewAction(formData: FormData) {
   const environmentScore = scoreValue(formData, "environment_score");
   const reviewScore = calculateReviewScore(tasteScore, serviceScore, environmentScore);
   const highScoreReason = optionalStringValue(formData, "high_score_reason");
+  const reviewText = optionalStringValue(formData, "review_text");
 
   if (!storeId) {
     throw new Error("매장 ID가 필요합니다.");
@@ -51,22 +54,49 @@ export async function createReviewAction(formData: FormData) {
     throw new Error("고득점 리뷰는 10자 이상의 이유가 필요합니다.");
   }
 
-  const { error } = await supabase.from("reviews").insert({
+  const sentiment = await analyzeReviewSentiment(reviewText ?? "", { reviewScore });
+  const insertPayload = {
     store_id: storeId,
     user_id: user.id,
     taste_score: tasteScore,
     service_score: serviceScore,
     environment_score: environmentScore,
     review_score: reviewScore,
-    review_text: optionalStringValue(formData, "review_text"),
+    review_text: reviewText,
     photo_url: optionalStringValue(formData, "photo_url"),
     visit_type: optionalStringValue(formData, "visit_type"),
     price_satisfaction: optionalStringValue(formData, "price_satisfaction"),
     is_high_score: reviewScore >= 4.5,
-    high_score_reason: highScoreReason
-  });
+    high_score_reason: highScoreReason,
+    sentiment_label: sentiment.sentimentLabel,
+    sentiment_score: sentiment.sentimentScore,
+    negative_signal_count: sentiment.negativeSignalCount,
+    negative_signals: sentiment.negativeSignals,
+    rating_text_mismatch: sentiment.ratingTextMismatch,
+    mismatch_reason: sentiment.mismatchReason,
+    mismatch_confidence: sentiment.mismatchConfidence
+  } satisfies Database["public"]["Tables"]["reviews"]["Insert"];
 
-  if (error) {
+  const { error } = await supabase.from("reviews").insert(insertPayload);
+
+  if (error && /sentiment|negative_signal|rating_text_mismatch|mismatch/i.test(error.message)) {
+    console.error("Review sentiment columns unavailable; retrying without sentiment fields", error);
+    const {
+      sentiment_label: _sentimentLabel,
+      sentiment_score: _sentimentScore,
+      negative_signal_count: _negativeSignalCount,
+      negative_signals: _negativeSignals,
+      rating_text_mismatch: _ratingTextMismatch,
+      mismatch_reason: _mismatchReason,
+      mismatch_confidence: _mismatchConfidence,
+      ...fallbackPayload
+    } = insertPayload;
+    const { error: fallbackError } = await supabase.from("reviews").insert(fallbackPayload);
+
+    if (fallbackError) {
+      throw new Error(`리뷰를 만들 수 없습니다: ${fallbackError.message}`);
+    }
+  } else if (error) {
     throw new Error(`리뷰를 만들 수 없습니다: ${error.message}`);
   }
 

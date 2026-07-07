@@ -91,6 +91,13 @@ export type Database = {
           is_hidden: boolean;
           excluded_from_score: boolean;
           is_synthetic: boolean;
+          sentiment_label: string | null;
+          sentiment_score: number | null;
+          negative_signal_count: number;
+          negative_signals: string[] | null;
+          rating_text_mismatch: boolean;
+          mismatch_reason: string | null;
+          mismatch_confidence: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -115,6 +122,13 @@ export type Database = {
           is_hidden?: boolean;
           excluded_from_score?: boolean;
           is_synthetic?: boolean;
+          sentiment_label?: string | null;
+          sentiment_score?: number | null;
+          negative_signal_count?: number;
+          negative_signals?: string[] | null;
+          rating_text_mismatch?: boolean;
+          mismatch_reason?: string | null;
+          mismatch_confidence?: number | null;
           created_at?: string;
           updated_at?: string;
         };
