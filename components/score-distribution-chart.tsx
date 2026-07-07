@@ -1,72 +1,124 @@
-import type { ScoreDistributionBucket } from "@/lib/score-distribution";
+import type { ScoreDistributionBucket, ScoreDistributionSummary } from "@/lib/score-distribution";
 
 type ScoreDistributionChartProps = {
-  buckets: ScoreDistributionBucket[];
-  totalStores: number;
-  isSample?: boolean;
+  summary: ScoreDistributionSummary;
 };
 
-export function ScoreDistributionChart({
+function formatScore(value: number) {
+  return Number.isFinite(value) ? value.toFixed(2) : "0.00";
+}
+
+function DistributionPanel({
+  title,
+  description,
   buckets,
-  totalStores,
-  isSample = false
-}: ScoreDistributionChartProps) {
+  averageLabel,
+  averageValue,
+  markerLabel
+}: {
+  title: string;
+  description: string;
+  buckets: ScoreDistributionBucket[];
+  averageLabel: string;
+  averageValue: number;
+  markerLabel?: string;
+}) {
   const maxCount = Math.max(1, ...buckets.map((bucket) => bucket.count));
 
+  return (
+    <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h3 className="text-base font-semibold text-zinc-950">{title}</h3>
+          <p className="mt-1 text-sm leading-6 text-zinc-600">{description}</p>
+        </div>
+        <div className="text-left sm:text-right">
+          <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+            {averageLabel}
+          </div>
+          <div className="mt-1 text-2xl font-semibold tabular-nums text-zinc-950">
+            {formatScore(averageValue)}
+          </div>
+        </div>
+      </div>
+
+      {markerLabel ? (
+        <div className="mt-4 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700">
+          {markerLabel}
+        </div>
+      ) : null}
+
+      <div className="mt-4 space-y-3">
+        {buckets.map((bucket) => (
+          <div key={bucket.range} className="rounded-xl border border-zinc-200 bg-white p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="text-sm font-semibold tabular-nums text-zinc-950">
+                  {bucket.range}
+                </div>
+                <div className="mt-0.5 text-xs font-medium text-zinc-500">{bucket.label}</div>
+              </div>
+              <div className="text-sm font-semibold tabular-nums text-zinc-950">
+                {bucket.count}개 · {bucket.percentage.toFixed(1)}%
+              </div>
+            </div>
+            <div className="mt-3 h-2 rounded-full bg-zinc-100">
+              <div
+                className="h-2 rounded-full bg-zinc-950"
+                style={{
+                  width: `${bucket.count ? Math.max(4, (bucket.count / maxCount) * 100) : 0}%`
+                }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ScoreDistributionChart({ summary }: ScoreDistributionChartProps) {
   return (
     <section className="rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:p-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            Distribution
+            Distribution Comparison
           </p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950">
-            TT Score 분포
+            RAW Score와 TT Score 분포 비교
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-600">
-            분포는 현재 매장들을 TT Score 구간별로 묶어 보여줍니다. 대부분의 매장은 시장 평균선
-            근처에 위치하고, 평균보다 확실히 높은 신호를 보이는 매장은 더 드물게 나타납니다.
+            RAW Score는 기존 별점처럼 높은 구간에 몰릴 수 있습니다. TT Score는 같은 매장 집합을
+            시장 평균선 3.0 기준으로 다시 정렬해 매장 간 차이를 더 쉽게 비교하도록 돕습니다.
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-800">
-          전체 {totalStores.toLocaleString()}개 매장 기준
+          현재 {summary.storeCount.toLocaleString()}개 매장 기준
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-        <div className="flex items-center justify-between gap-4 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
-          <span>TT Score 3.0 = 시장 평균선</span>
-          <span>{isSample ? "대표 샘플 기준" : "현재 Trusttable 데이터 기준"}</span>
-        </div>
-        <div className="mt-4 space-y-3">
-          {buckets.map((bucket) => (
-            <div
-              key={bucket.range}
-              className="grid gap-3 rounded-2xl border border-zinc-200 bg-white p-4 sm:grid-cols-[110px_170px_minmax(160px,1fr)_96px] sm:items-center"
-            >
-              <div className="text-sm font-semibold tabular-nums text-zinc-950">
-                {bucket.range}
-              </div>
-              <div className="text-sm font-medium text-zinc-600">{bucket.label}</div>
-              <div className="h-2 rounded-full bg-zinc-100">
-                <div
-                  className="h-2 rounded-full bg-zinc-950"
-                  style={{
-                    width: `${bucket.count ? Math.max(4, (bucket.count / maxCount) * 100) : 0}%`
-                  }}
-                />
-              </div>
-              <div className="text-right text-sm font-semibold tabular-nums text-zinc-950">
-                {bucket.count}개 · {bucket.percentage.toFixed(1)}%
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <DistributionPanel
+          title="RAW Score 분포"
+          description="신뢰 가중 원점수 기준"
+          buckets={summary.rawDistribution}
+          averageLabel="RAW 평균"
+          averageValue={summary.rawAverage}
+        />
+        <DistributionPanel
+          title="TT Score 분포"
+          description="시장 평균 3.0 재정렬 기준"
+          buckets={summary.ttDistribution}
+          averageLabel="TT 평균"
+          averageValue={summary.ttAverage}
+          markerLabel={`TT Score ${summary.marketAverageLine.toFixed(1)} = 시장 평균선`}
+        />
       </div>
 
       <p className="mt-4 text-xs leading-5 text-zinc-500">
-        분포는 현재 데이터 기준으로 계산되며, 리뷰 수와 데이터 업데이트에 따라 달라질 수
-        있습니다.
+        두 분포는 동일한 매장 집합을 기준으로 계산됩니다. 데이터 연결이 없거나 점수 데이터가
+        없으면 분포는 비어 있을 수 있습니다.
       </p>
     </section>
   );

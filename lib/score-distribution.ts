@@ -7,9 +7,26 @@ export type ScoreDistributionBucket = {
   percentage: number;
 };
 
+export type ScoreDistributionSummary = {
+  rawDistribution: ScoreDistributionBucket[];
+  ttDistribution: ScoreDistributionBucket[];
+  rawAverage: number;
+  ttAverage: number;
+  storeCount: number;
+  marketAverageLine: number;
+};
+
 type BucketDefinition = Omit<ScoreDistributionBucket, "count" | "percentage">;
 
-const BUCKETS: BucketDefinition[] = [
+const RAW_BUCKETS: BucketDefinition[] = [
+  { range: "4.5 이상", label: "높은 RAW 구간", min: 4.5, max: null },
+  { range: "4.0 - 4.5", label: "상위 RAW 구간", min: 4.0, max: 4.5 },
+  { range: "3.5 - 4.0", label: "중간 RAW 구간", min: 3.5, max: 4.0 },
+  { range: "3.0 - 3.5", label: "낮은 RAW 구간", min: 3.0, max: 3.5 },
+  { range: "3.0 미만", label: "추가 확인 구간", min: null, max: 3.0 }
+];
+
+const TT_BUCKETS: BucketDefinition[] = [
   { range: "4.0 이상", label: "매우 강한 긍정 신호", min: 4.0, max: null },
   { range: "3.6 - 4.0", label: "강한 긍정 신호", min: 3.6, max: 4.0 },
   { range: "3.3 - 3.6", label: "평균 이상", min: 3.3, max: 3.6 },
@@ -18,6 +35,16 @@ const BUCKETS: BucketDefinition[] = [
   { range: "2.7 미만", label: "추가 검토 필요", min: null, max: 2.7 }
 ];
 
+function average(values: number[]) {
+  const safeValues = values.filter((value) => Number.isFinite(value));
+
+  if (!safeValues.length) {
+    return 0;
+  }
+
+  return safeValues.reduce((sum, value) => sum + value, 0) / safeValues.length;
+}
+
 function isInBucket(score: number, bucket: BucketDefinition) {
   const aboveMin = bucket.min === null || score >= bucket.min;
   const belowMax = bucket.max === null || score < bucket.max;
@@ -25,11 +52,11 @@ function isInBucket(score: number, bucket: BucketDefinition) {
   return aboveMin && belowMax;
 }
 
-export function calculateScoreDistribution(scores: number[]): ScoreDistributionBucket[] {
+function calculateBuckets(scores: number[], buckets: BucketDefinition[]) {
   const safeScores = scores.filter((score) => Number.isFinite(score));
   const total = safeScores.length;
 
-  return BUCKETS.map((bucket) => {
+  return buckets.map((bucket) => {
     const count = safeScores.filter((score) => isInBucket(score, bucket)).length;
     const percentage = total ? Math.round((count / total) * 1000) / 10 : 0;
 
@@ -41,15 +68,20 @@ export function calculateScoreDistribution(scores: number[]): ScoreDistributionB
   });
 }
 
-export function representativeTtScores() {
-  const buckets = [
-    { count: 2, value: 4.08 },
-    { count: 8, value: 3.78 },
-    { count: 18, value: 3.44 },
-    { count: 24, value: 3.16 },
-    { count: 31, value: 2.88 },
-    { count: 17, value: 2.58 }
-  ];
+export function calculateScoreDistributionSummary(input: {
+  rawScores: number[];
+  ttScores: number[];
+}): ScoreDistributionSummary {
+  const rawScores = input.rawScores.filter((score) => Number.isFinite(score));
+  const ttScores = input.ttScores.filter((score) => Number.isFinite(score));
+  const storeCount = Math.min(rawScores.length, ttScores.length);
 
-  return buckets.flatMap((bucket) => Array.from({ length: bucket.count }, () => bucket.value));
+  return {
+    rawDistribution: calculateBuckets(rawScores, RAW_BUCKETS),
+    ttDistribution: calculateBuckets(ttScores, TT_BUCKETS),
+    rawAverage: average(rawScores),
+    ttAverage: average(ttScores),
+    storeCount,
+    marketAverageLine: 3.0
+  };
 }
