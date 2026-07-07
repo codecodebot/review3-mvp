@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
 import { HelpTooltip } from "@/components/help-tooltip";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
@@ -26,6 +27,14 @@ export default function HomePage({ searchParams }: HomePageProps) {
             </div>
           ) : null}
           <div className="space-y-4">
+            <Image
+              src="/brand/trusttable-logo.png"
+              alt="Trusttable"
+              width={180}
+              height={180}
+              priority
+              className="h-12 w-auto object-contain"
+            />
             <p className="text-sm font-semibold text-blue-600">
               신뢰 가중 식당·카페 리뷰
             </p>

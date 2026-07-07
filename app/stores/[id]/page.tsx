@@ -4,6 +4,7 @@ import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import { ReviewCard } from "@/components/review-card";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
 import { RevisitRateDetail } from "@/components/revisit-rate";
+import { RisingStoreBadge } from "@/components/rising-store-badge";
 import { ScoreBadge } from "@/components/score-badge";
 import { TrustBadge } from "@/components/trust-badge";
 import { VerificationBadge } from "@/components/verification-badge";
@@ -61,6 +62,11 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
             <h1 className="text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">
               {store.name}
             </h1>
+            {store.rising?.isRising ? (
+              <div className="mt-2">
+                <RisingStoreBadge rising={store.rising} />
+              </div>
+            ) : null}
             <p className="mt-2 text-sm font-medium text-zinc-500">
               {formatRegionLabel(store.region)} · {formatCategoryLabel(store.category)}
               {store.address ? ` · ${store.address}` : ""}

@@ -1,7 +1,12 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { RisingStoreBadge } from "@/components/rising-store-badge";
 import { StarRating } from "@/components/star-rating";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -10,16 +15,25 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { calculateAdjustedScore, calculateRawAverage } from "@/lib/scoring";
+import {
+  DEFAULT_RECENCY_OPTIONS,
+  DEFAULT_SCORE_WEIGHTS,
+  calculateAdjustedScore,
+  calculateRawAverage,
+  calculateRecencyWeightedRawScore,
+  calculateRisingStoreSignal,
+  normalizeScoreWeights,
+  type ScoreWeights
+} from "@/lib/scoring";
 import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
-import type { StoreWithScore } from "@/lib/types";
+import type { StoreWithScoreAndReviews } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type RankingTableProps = {
-  stores: StoreWithScore[];
+  stores: StoreWithScoreAndReviews[];
 };
 
-type RankedStore = StoreWithScore & {
+type RankedStore = StoreWithScoreAndReviews & {
   rawScore: number;
   normalizedScore: number;
   rawAverageDelta: number;
@@ -27,13 +41,20 @@ type RankedStore = StoreWithScore & {
 
 type TrustLevel = "unknown" | "low" | "medium" | "high";
 
+const STORAGE_KEY = "trusttable.scoringWeights.v1";
+
 function formatScore(value: number) {
-  return value.toFixed(2);
+  return Number.isFinite(value) ? value.toFixed(2) : "0.00";
+}
+
+function roundTwo(value: number) {
+  return Math.round(value * 100) / 100;
 }
 
 function formatDelta(value: number) {
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)}`;
+  const safeValue = Number.isFinite(value) ? value : 0;
+  const sign = safeValue > 0 ? "+" : "";
+  return `${sign}${safeValue.toFixed(2)}`;
 }
 
 function formatPercent(value: number | null | undefined) {
@@ -73,11 +94,13 @@ function verificationLabel(status: string | null | undefined) {
 }
 
 function average(values: number[]) {
-  if (!values.length) {
+  const safeValues = values.filter((value) => Number.isFinite(value));
+
+  if (!safeValues.length) {
     return 0;
   }
 
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
+  return safeValues.reduce((sum, value) => sum + value, 0) / safeValues.length;
 }
 
 function toTrustLevel(value: string | null | undefined): TrustLevel {
@@ -129,17 +152,68 @@ function barWidthForScore(score: number) {
   return `${Math.round(percent * 10) / 10}%`;
 }
 
-function buildRankedStores(stores: StoreWithScore[]) {
-  const scoredStores = stores.filter((store) => typeof store.score?.raw_score === "number");
-  const rawAverage = calculateRawAverage(scoredStores.map((store) => store.score?.raw_score ?? 0));
+function weightsToPercents(weights: ScoreWeights) {
+  return {
+    taste: Math.round(weights.taste * 100),
+    service: Math.round(weights.service * 100),
+    environment: Math.round(weights.environment * 100)
+  };
+}
 
-  const rankedStores = scoredStores
-    .map<RankedStore>((store) => {
-      const rawScore = store.score?.raw_score ?? 0;
+function percentsToWeights(percents: { taste: number; service: number; environment: number }) {
+  return normalizeScoreWeights({
+    taste: percents.taste,
+    service: percents.service,
+    environment: percents.environment
+  });
+}
+
+function parseStoredWeights(value: string | null) {
+  if (!value) {
+    return DEFAULT_SCORE_WEIGHTS;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as Partial<ScoreWeights>;
+    return normalizeScoreWeights({
+      taste: Number(parsed.taste ?? DEFAULT_SCORE_WEIGHTS.taste),
+      service: Number(parsed.service ?? DEFAULT_SCORE_WEIGHTS.service),
+      environment: Number(parsed.environment ?? DEFAULT_SCORE_WEIGHTS.environment)
+    });
+  } catch {
+    return DEFAULT_SCORE_WEIGHTS;
+  }
+}
+
+function buildRankedStores(stores: StoreWithScoreAndReviews[], weights: ScoreWeights) {
+  const scoredStores = stores.filter((store) => (store.score?.review_count ?? 0) >= 5);
+
+  const storesWithRaw = scoredStores.map((store) => {
+    const calculatedRaw = calculateRecencyWeightedRawScore(store.ranking_reviews, weights, {
+      halfLifeDays: DEFAULT_RECENCY_OPTIONS.halfLifeDays,
+      minRecencyWeight: DEFAULT_RECENCY_OPTIONS.minRecencyWeight
+    });
+    const rawScore = calculatedRaw > 0 ? calculatedRaw : store.score?.raw_score ?? 0;
+
+    return { store, rawScore };
+  });
+
+  const rawAverage = calculateRawAverage(storesWithRaw.map((item) => item.rawScore));
+  const rankedStores = storesWithRaw
+    .map<RankedStore>(({ store, rawScore }) => {
       const normalizedScore = calculateAdjustedScore({ rawScore, rawAverage });
+      const rising = calculateRisingStoreSignal(store.ranking_reviews, weights, {
+        halfLifeDays: DEFAULT_RECENCY_OPTIONS.halfLifeDays,
+        minRecencyWeight: DEFAULT_RECENCY_OPTIONS.minRecencyWeight
+      });
 
       return {
         ...store,
+        rising: {
+          isRising: rising.isRising,
+          risingDelta: roundTwo(rising.risingDelta),
+          recentReviewCount: rising.recentReviewCount
+        },
         rawScore,
         normalizedScore,
         rawAverageDelta: rawScore - rawAverage
@@ -148,6 +222,71 @@ function buildRankedStores(stores: StoreWithScore[]) {
     .sort((a, b) => b.normalizedScore - a.normalizedScore);
 
   return { rankedStores, rawAverage };
+}
+
+function ScoringWeightsPanel({
+  weights,
+  onChange
+}: {
+  weights: ScoreWeights;
+  onChange: (weights: ScoreWeights) => void;
+}) {
+  const percents = weightsToPercents(weights);
+
+  function updateWeight(key: keyof ScoreWeights, value: number) {
+    const clampedValue = Math.max(0, Math.min(100, Number.isFinite(value) ? value : 0));
+    onChange(
+      percentsToWeights({
+        ...percents,
+        [key]: clampedValue
+      })
+    );
+  }
+
+  const controls = [
+    { key: "taste" as const, label: "Taste", value: percents.taste },
+    { key: "service" as const, label: "Service", value: percents.service },
+    { key: "environment" as const, label: "Environment", value: percents.environment }
+  ];
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base">Scoring Weights</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid gap-4 lg:grid-cols-3">
+          {controls.map((control) => (
+            <div key={control.key} className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-sm font-semibold text-zinc-800" htmlFor={control.key}>
+                  {control.label}
+                </label>
+                <span className="text-sm font-bold tabular-nums text-zinc-950">
+                  {control.value}%
+                </span>
+              </div>
+              <Input
+                id={control.key}
+                type="range"
+                min={0}
+                max={100}
+                value={control.value}
+                onChange={(event) => updateWeight(control.key, Number(event.target.value))}
+                className="h-9 px-0"
+              />
+            </div>
+          ))}
+        </div>
+        <div className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs leading-5 text-zinc-600">
+          최근 리뷰 가중치가 적용 중입니다. Half-life 기준은 최근{" "}
+          {DEFAULT_RECENCY_OPTIONS.halfLifeDays}일이며, 오래된 리뷰도 최소{" "}
+          {Math.round(DEFAULT_RECENCY_OPTIONS.minRecencyWeight * 100)}%는 반영됩니다. 구매 미인증
+          리뷰는 점수 계산에서 낮은 가중치로 반영됩니다. 설정은 이 브라우저에 저장됩니다.
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 function RankingSummary({ stores, rawAverage }: { stores: RankedStore[]; rawAverage: number }) {
@@ -287,18 +426,41 @@ function ScoreHistogram({ stores }: { stores: RankedStore[] }) {
 }
 
 export function RankingTable({ stores }: RankingTableProps) {
-  const { rankedStores, rawAverage } = buildRankedStores(stores);
+  const [weights, setWeights] = useState<ScoreWeights>(DEFAULT_SCORE_WEIGHTS);
+  const [hasLoadedStoredWeights, setHasLoadedStoredWeights] = useState(false);
+
+  useEffect(() => {
+    setWeights(parseStoredWeights(window.localStorage.getItem(STORAGE_KEY)));
+    setHasLoadedStoredWeights(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedStoredWeights) {
+      return;
+    }
+
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(weights));
+  }, [hasLoadedStoredWeights, weights]);
+
+  const { rankedStores, rawAverage } = useMemo(
+    () => buildRankedStores(stores, weights),
+    [stores, weights]
+  );
 
   if (!rankedStores.length) {
     return (
-      <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
-        아직 랭킹에 표시할 만큼 리뷰가 충분한 매장이 없습니다.
+      <div className="space-y-5">
+        <ScoringWeightsPanel weights={weights} onChange={setWeights} />
+        <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500">
+          아직 랭킹에 표시할 만큼 리뷰가 충분한 매장이 없습니다.
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-5">
+      <ScoringWeightsPanel weights={weights} onChange={setWeights} />
       <RankingSummary stores={rankedStores} rawAverage={rawAverage} />
       <div className="grid gap-4 xl:grid-cols-2">
         <ScoreComparisonChart stores={rankedStores} />
@@ -337,11 +499,21 @@ export function RankingTable({ stores }: RankingTableProps) {
                       <div className="mt-1 text-xs font-medium text-zinc-500">
                         {formatRegionLabel(store.region)} / {formatCategoryLabel(store.category)}
                       </div>
+                      {store.rising?.isRising ? (
+                        <div className="mt-2">
+                          <RisingStoreBadge rising={store.rising} compact />
+                        </div>
+                      ) : null}
                     </TableCell>
                     <TableCell className="py-2">
                       <StarRating value={store.normalizedScore} size="sm" label="보정 점수" />
                       <div className="mt-1 text-xs font-medium text-zinc-500">
                         원점수 {formatScore(store.rawScore)} · 리뷰 {store.score?.review_count ?? 0}개
+                      </div>
+                      <div className="mt-1">
+                        <Badge variant="outline" className="border-zinc-200 bg-zinc-50 text-zinc-600">
+                          최신 리뷰 가중
+                        </Badge>
                       </div>
                       <div className="mt-2 h-2 rounded-full bg-zinc-100">
                         <div

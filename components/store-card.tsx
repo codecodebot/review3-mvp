@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
 import { RevisitRateDetail } from "@/components/revisit-rate";
+import { RisingStoreBadge } from "@/components/rising-store-badge";
 import { TrustBadge } from "@/components/trust-badge";
 import { VerificationBadge } from "@/components/verification-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,11 @@ export function StoreCard({ store }: StoreCardProps) {
       <CardHeader className="space-y-3 pb-3">
         <div>
           <CardTitle className="line-clamp-2 text-[17px] leading-6">{store.name}</CardTitle>
+          {store.rising?.isRising ? (
+            <div className="mt-2">
+              <RisingStoreBadge rising={store.rising} compact />
+            </div>
+          ) : null}
           <p className="mt-1 text-sm font-medium text-zinc-500">
             {formatRegionLabel(store.region)} / {formatCategoryLabel(store.category)}
           </p>

@@ -18,6 +18,7 @@ function formatDate(value: string) {
 
 export function ReviewCard({ review }: ReviewCardProps) {
   const isDemoReview = review.is_synthetic || review.profile?.is_synthetic;
+  const purchaseVerified = review.purchase_verified ?? true;
 
   return (
     <Card>
@@ -29,6 +30,16 @@ export function ReviewCard({ review }: ReviewCardProps) {
                 {review.profile?.nickname ?? "익명 리뷰어"}
               </CardTitle>
               {isDemoReview ? <Badge variant="muted">데모</Badge> : null}
+              <Badge
+                variant="outline"
+                className={
+                  purchaseVerified
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : "border-zinc-200 bg-zinc-50 text-zinc-600"
+                }
+              >
+                {purchaseVerified ? "구매 인증" : "구매 미인증"}
+              </Badge>
             </div>
             <p className="mt-1 text-sm text-muted-foreground">{formatDate(review.created_at)}</p>
           </div>
@@ -47,6 +58,11 @@ export function ReviewCard({ review }: ReviewCardProps) {
         <p className="whitespace-pre-wrap text-sm leading-6">
           {review.review_text || "작성된 리뷰가 없습니다."}
         </p>
+        {!purchaseVerified ? (
+          <p className="text-xs font-medium text-zinc-500">
+            구매 미인증 리뷰는 점수 계산에서 낮은 가중치로 반영됩니다.
+          </p>
+        ) : null}
         {review.high_score_reason ? (
           <div className="rounded-md border bg-muted p-3 text-sm">
             <span className="font-medium">고득점 이유: </span>

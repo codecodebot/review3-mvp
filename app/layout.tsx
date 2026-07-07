@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { logoutAction } from "@/app/actions/auth";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -7,8 +8,12 @@ import { cn } from "@/lib/utils";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "신뢰 기반 리뷰 MVP",
-  description: "원점수와 보정 점수를 함께 보여주는 식당·카페 리뷰입니다."
+  title: "Trusttable",
+  description: "원점수와 보정 점수를 함께 보여주는 식당·카페 리뷰입니다.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png"
+  }
 };
 
 const navItems = [
@@ -43,8 +48,15 @@ export default async function RootLayout({
         <div className="min-h-screen">
           <header className="border-b border-zinc-200 bg-white/95 backdrop-blur">
             <div className="container flex min-h-16 flex-wrap items-center justify-between gap-4 py-3">
-              <Link href="/" className="text-base font-bold tracking-normal text-zinc-950">
-                신뢰리뷰 MVP
+              <Link href="/" className="flex shrink-0 items-center" aria-label="Trusttable 홈">
+                <Image
+                  src="/brand/trusttable-logo.png"
+                  alt="Trusttable"
+                  width={160}
+                  height={160}
+                  priority
+                  className="h-8 w-auto object-contain"
+                />
               </Link>
               <div className="flex flex-wrap items-center justify-end gap-3">
                 <nav className="flex items-center gap-2 text-sm">

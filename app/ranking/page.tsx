@@ -6,12 +6,12 @@ import {
   isSupabaseSetupOrConnectionError,
   type SupabaseIssueKind
 } from "@/lib/setup";
-import type { StoreWithScore } from "@/lib/types";
+import type { StoreWithScoreAndReviews } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function RankingPage() {
-  let stores: StoreWithScore[] = [];
+  let stores: StoreWithScoreAndReviews[] = [];
   let supabaseIssue: SupabaseIssueKind | null = null;
 
   try {

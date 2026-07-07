@@ -84,6 +84,7 @@ export type Database = {
           price_satisfaction: string | null;
           is_high_score: boolean;
           high_score_reason: string | null;
+          purchase_verified: boolean;
           quality_weight: number;
           user_weight: number;
           final_weight: number;
@@ -107,6 +108,7 @@ export type Database = {
           price_satisfaction?: string | null;
           is_high_score?: boolean;
           high_score_reason?: string | null;
+          purchase_verified?: boolean;
           quality_weight?: number;
           user_weight?: number;
           final_weight?: number;
@@ -342,6 +344,27 @@ export type Report = Database["public"]["Tables"]["reports"]["Row"];
 
 export type StoreWithScore = Store & {
   score: StoreScoreCache | null;
+  rising?: StoreRisingSignal | null;
+};
+
+export type RankingReview = Pick<
+  Review,
+  | "store_id"
+  | "taste_score"
+  | "service_score"
+  | "environment_score"
+  | "created_at"
+  | "purchase_verified"
+>;
+
+export type StoreWithScoreAndReviews = StoreWithScore & {
+  ranking_reviews: RankingReview[];
+};
+
+export type StoreRisingSignal = {
+  isRising: boolean;
+  risingDelta: number;
+  recentReviewCount: number;
 };
 
 export type ProfileSummary = Pick<Profile, "id" | "nickname" | "trust_score" | "review_count"> & {

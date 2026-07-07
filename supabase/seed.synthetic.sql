@@ -248,6 +248,13 @@ review_personas as (
 scored_reviews as (
   select
     *,
+    store_no % 20 in (1, 2) as is_rising_candidate,
+    store_no % 20 in (1, 2) and review_index > target_reviews - 8 as is_recent_momentum_review,
+    case
+      when store_no % 20 in (1, 2) and review_index > target_reviews - 8 then 0.85::numeric
+      when store_no % 20 in (1, 2) then -0.25::numeric
+      else 0::numeric
+    end as momentum_bias,
     case persona
       when 'generous' then 0.35::numeric
       when 'critical' then -0.45::numeric
@@ -263,13 +270,22 @@ scored_reviews as (
 final_reviews as (
   select
     *,
-    least(5, greatest(1, round(quality_anchor + persona_bias + taste_noise + 0.10)::int)) as taste_score,
-    least(5, greatest(1, round(quality_anchor + persona_bias + service_noise - 0.05)::int)) as service_score,
-    least(5, greatest(1, round(quality_anchor + persona_bias + environment_noise)::int)) as environment_score,
-    timestamp with time zone '2026-01-01 09:00:00+00'
-      + (store_no * interval '8 hours')
-      + (review_index * interval '3 hours')
-      + case when visit_number = 2 then interval '7 days' else interval '0 days' end as created_at
+    least(5, greatest(1, round(quality_anchor + persona_bias + momentum_bias + taste_noise + 0.10)::int)) as taste_score,
+    least(5, greatest(1, round(quality_anchor + persona_bias + momentum_bias + service_noise - 0.05)::int)) as service_score,
+    least(5, greatest(1, round(quality_anchor + persona_bias + momentum_bias + environment_noise)::int)) as environment_score,
+    case
+      when is_recent_momentum_review then
+        timestamp with time zone '2026-06-12 09:00:00+00'
+          + ((review_index - (target_reviews - 8)) * interval '2 days')
+          + (store_no * interval '20 minutes')
+          + case when visit_number = 2 then interval '1 day' else interval '0 days' end
+      else
+        timestamp with time zone '2026-01-01 09:00:00+00'
+          + (store_no * interval '8 hours')
+          + (review_index * interval '3 hours')
+          + case when visit_number = 2 then interval '7 days' else interval '0 days' end
+    end as created_at,
+    (store_no * review_index + user_no) % 5 <> 0 as purchase_verified
   from scored_reviews
 ),
 review_payload as (
@@ -290,6 +306,7 @@ insert into public.reviews (
   visit_type,
   price_satisfaction,
   high_score_reason,
+  purchase_verified,
   is_hidden,
   excluded_from_score,
   is_synthetic,
@@ -352,6 +369,7 @@ select
       'High score is supported by clear taste, service, or environment strengths.'
     else null
   end,
+  purchase_verified,
   (store_no * review_index + user_no) % 113 = 0,
   (store_no + review_index + user_no) % 127 = 0,
   true,
@@ -370,6 +388,7 @@ set
   visit_type = excluded.visit_type,
   price_satisfaction = excluded.price_satisfaction,
   high_score_reason = excluded.high_score_reason,
+  purchase_verified = excluded.purchase_verified,
   is_hidden = excluded.is_hidden,
   excluded_from_score = excluded.excluded_from_score,
   is_synthetic = true,
