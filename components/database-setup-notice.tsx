@@ -9,13 +9,16 @@ export function DatabaseSetupNotice({ kind = "database" }: DatabaseSetupNoticePr
   const isConnectionIssue = kind === "connection";
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
+    <Card className="border-zinc-200/80">
+      <CardHeader className="pb-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
+          Setup Status
+        </p>
+        <CardTitle className="mt-2">
           {isConnectionIssue ? "Supabase 연결 불가" : "데이터베이스 설정 필요"}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm leading-6 text-muted-foreground">
+      <CardContent className="space-y-3 text-sm leading-6 text-zinc-600">
         {isConnectionIssue ? (
           <>
             <p>

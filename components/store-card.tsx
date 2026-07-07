@@ -2,6 +2,7 @@ import Link from "next/link";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
 import { RevisitRateDetail } from "@/components/revisit-rate";
 import { RisingStoreBadge } from "@/components/rising-store-badge";
+import { ScoreDelta } from "@/components/score-delta";
 import { TrustBadge } from "@/components/trust-badge";
 import { VerificationBadge } from "@/components/verification-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,18 +16,24 @@ type StoreCardProps = {
 };
 
 export function StoreCard({ store }: StoreCardProps) {
+  const rawScore = store.score?.raw_score ?? 0;
+  const adjustedScore = store.score?.adjusted_score ?? 0;
+
   return (
-    <Card className="transition hover:border-zinc-300 hover:shadow-[0_6px_18px_rgba(15,23,42,0.06)]">
-      <CardHeader className="space-y-3 pb-3">
+    <Card className="transition hover:border-zinc-300 hover:shadow-[0_16px_40px_rgba(15,23,42,0.07)]">
+      <CardHeader className="space-y-4 pb-4">
         <div>
-          <CardTitle className="line-clamp-2 text-[17px] leading-6">{store.name}</CardTitle>
+          <div className="flex flex-wrap items-center gap-2">
+            <CardTitle className="line-clamp-2 text-lg leading-6">{store.name}</CardTitle>
+            <RisingStoreBadge rising={store.rising} compact />
+          </div>
           {store.rising?.isRising ? (
-            <div className="mt-2">
-              <RisingStoreBadge rising={store.rising} compact />
-            </div>
+            <p className="mt-2 text-xs font-medium text-indigo-700">
+              최근 유효 리뷰가 과거 평균보다 높습니다.
+            </p>
           ) : null}
           <p className="mt-1 text-sm font-medium text-zinc-500">
-            {formatRegionLabel(store.region)} / {formatCategoryLabel(store.category)}
+            {formatRegionLabel(store.region)} · {formatCategoryLabel(store.category)}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -35,18 +42,21 @@ export function StoreCard({ store }: StoreCardProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="rounded-lg bg-zinc-50 p-3">
+        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
           <RawAdjustedScoreBlock score={store.score} compact />
+          <div className="mt-3">
+            <ScoreDelta adjustedScore={adjustedScore} rawScore={rawScore} />
+          </div>
         </div>
         <div className="grid gap-3 text-sm sm:grid-cols-2">
-          <div className="rounded-md border border-zinc-200 bg-white px-3 py-2">
-            <div className="text-xs font-medium text-zinc-500">리뷰 수</div>
+          <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">Reviews</div>
             <div className="mt-1 font-semibold tabular-nums text-zinc-950">
               {store.score?.review_count ?? 0}
             </div>
           </div>
-          <div className="rounded-md border border-zinc-200 bg-white px-3 py-2">
-            <div className="text-xs font-medium text-zinc-500">재방문 리뷰어</div>
+          <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-3">
+            <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">Repeat</div>
             <RevisitRateDetail score={store.score} />
           </div>
         </div>

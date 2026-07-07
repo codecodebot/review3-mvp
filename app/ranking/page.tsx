@@ -25,13 +25,20 @@ export default async function RankingPage() {
   }
 
   return (
-    <div className="container py-8 sm:py-10">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">랭킹</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500">
-          표시 가능한 리뷰가 5개 이상인 매장만 보입니다. 랭킹은 평균 중심 보정 점수로 정렬하며,
-          신뢰도, 인증 상태, 재방문 리뷰어 비율은 참고 지표로 표시합니다.
-        </p>
+    <div className="container py-8 sm:py-12">
+      <div className="mb-8 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:p-8">
+        <div className="max-w-3xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            Trusttable Ranking Console
+          </p>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-5xl">
+            inflated ratings를 보정해 신뢰 가능한 매장 순위를 보여줍니다.
+          </h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600">
+            원점수, 보정 점수, 구매 인증 가중치, 최근 리뷰 상승 신호를 한 화면에서 비교합니다.
+            점수는 숨기지 않고 왜 바뀌었는지 함께 설명합니다.
+          </p>
+        </div>
       </div>
       {supabaseIssue ? <DatabaseSetupNotice kind={supabaseIssue} /> : <RankingTable stores={stores} />}
     </div>

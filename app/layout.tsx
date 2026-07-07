@@ -45,8 +45,8 @@ export default async function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <div className="min-h-screen">
-          <header className="border-b border-zinc-200 bg-white/95 backdrop-blur">
+        <div className="min-h-screen bg-zinc-50">
+          <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/90 backdrop-blur-xl">
             <div className="container flex min-h-16 flex-wrap items-center justify-between gap-4 py-3">
               <Link href="/" className="flex shrink-0 items-center" aria-label="Trusttable 홈">
                 <Image
@@ -64,7 +64,7 @@ export default async function RootLayout({
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="rounded-md px-3 py-2 font-medium text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950"
+                      className="rounded-full px-3 py-2 font-semibold text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950"
                     >
                       {item.label}
                     </Link>

@@ -1,11 +1,10 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { HelpTooltip } from "@/components/help-tooltip";
+import { MetricCard } from "@/components/metric-card";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SCORE_EXPLANATION } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 type HomePageProps = {
@@ -14,94 +13,123 @@ type HomePageProps = {
   };
 };
 
+const trustSignals = [
+  "Verified reviews weighted higher",
+  "Unverified reviews weighted lower",
+  "Recent review trend considered",
+  "All stores normalized around market average 3.0"
+];
+
 export default function HomePage({ searchParams }: HomePageProps) {
   const authRequired = searchParams?.auth === "required";
 
   return (
-    <div className="container py-10 sm:py-12">
-      <section className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        <div className="space-y-6">
-          {authRequired ? (
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              리뷰를 작성하려면 먼저 로그인해야 합니다.
+    <div className="container py-8 sm:py-12">
+      <section className="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.035)]">
+        <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:p-10">
+          <div className="space-y-7">
+            {authRequired ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
+                리뷰를 작성하려면 먼저 로그인해야 합니다.
+              </div>
+            ) : null}
+
+            <div className="space-y-5">
+              <Image
+                src="/brand/trusttable-logo.png"
+                alt="Trusttable"
+                width={180}
+                height={180}
+                priority
+                className="h-12 w-auto object-contain"
+              />
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                Review Trust Infrastructure
+              </p>
+              <h1 className="max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-zinc-950 sm:text-6xl">
+                inflated ratings를 신뢰 가능한 점수로 다시 계산합니다.
+              </h1>
+              <p className="max-w-2xl text-base leading-7 text-zinc-600">
+                Trusttable은 원점수를 숨기지 않고, 구매 인증·최근 리뷰 흐름·리뷰어 신뢰 패턴을
+                반영해 보정 점수를 계산하는 리뷰 신뢰 분석 대시보드입니다.
+              </p>
             </div>
-          ) : null}
-          <div className="space-y-4">
-            <Image
-              src="/brand/trusttable-logo.png"
-              alt="Trusttable"
-              width={180}
-              height={180}
-              priority
-              className="h-12 w-auto object-contain"
-            />
-            <p className="text-sm font-semibold text-blue-600">
-              신뢰 가중 식당·카페 리뷰
-            </p>
-            <h1 className="max-w-3xl text-3xl font-bold leading-tight tracking-normal text-zinc-950 sm:text-5xl">
-              사람들이 준 점수와, 그 점수가 얼마나 믿을 만한지 함께 봅니다.
-            </h1>
-            <p className="max-w-2xl text-base font-normal leading-7 text-zinc-600">
-              맛, 서비스, 공간을 나눠 평가하고 원점수와 보정 점수를 함께 보여줍니다.
-              부풀려진 점수나 왜곡된 리뷰 패턴을 더 쉽게 확인할 수 있습니다.
-            </p>
+
+            <div className="flex flex-wrap gap-3">
+              <Link href="/ranking" className={cn(buttonVariants({ size: "lg" }), "gap-2")}>
+                랭킹 대시보드 보기 <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link href="/stores" className={buttonVariants({ variant: "outline", size: "lg" })}>
+                매장 데이터 보기
+              </Link>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/stores" className={cn(buttonVariants(), "gap-2")}>
-              매장 보기 <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link href="/ranking" className={buttonVariants({ variant: "outline" })}>
-              랭킹 보기
-            </Link>
+
+          <div className="space-y-4">
+            <RawAdjustedScoreBlock
+              score={{
+                store_id: "demo",
+                raw_score: 4.42,
+                bayesian_raw_score: 3.91,
+                adjusted_score: 3.34,
+                ranking_score: 3.34,
+                taste_score: 4.7,
+                service_score: 4.1,
+                environment_score: 4.2,
+                review_count: 128,
+                revisit_rate: 0.38,
+                unique_reviewer_count: 88,
+                returning_reviewer_count: 33,
+                trust_level: "medium",
+                peer_average_raw_score: 4.08,
+                updated_at: new Date().toISOString()
+              }}
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <MetricCard label="Raw" value="4.42" helper="사용자 리뷰 원점수" />
+              <MetricCard label="Adjusted" value="3.34" helper="시장 평균 3.0 보정" />
+            </div>
           </div>
         </div>
-        <RawAdjustedScoreBlock
-          score={{
-            store_id: "demo",
-            raw_score: 4.42,
-            bayesian_raw_score: 3.91,
-            adjusted_score: 3.34,
-            ranking_score: 3.48,
-            taste_score: 4.7,
-            service_score: 4.1,
-            environment_score: 4.2,
-            review_count: 12,
-            revisit_rate: 0.38,
-            unique_reviewer_count: 8,
-            returning_reviewer_count: 3,
-            trust_level: "medium",
-            peer_average_raw_score: 3.48,
-            updated_at: new Date().toISOString()
-          }}
-        />
       </section>
 
-      <section className="mt-12 grid gap-4 md:grid-cols-3">
+      <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {trustSignals.map((signal) => (
+          <div
+            key={signal}
+            className="rounded-2xl border border-zinc-200/80 bg-white p-5 text-sm font-semibold text-zinc-800 shadow-[0_1px_2px_rgba(15,23,42,0.035)]"
+          >
+            {signal}
+          </div>
+        ))}
+      </section>
+
+      <section className="mt-8 grid gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>세 가지 평가</CardTitle>
+            <CardTitle>원점수와 보정 점수 동시 공개</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm leading-6 text-muted-foreground">
-            리뷰는 맛, 서비스, 공간을 따로 평가합니다. 개별 리뷰 점수는 맛 50%,
-            서비스 25%, 공간 25%로 계산합니다.
+          <CardContent className="text-sm leading-6 text-zinc-600">
+            Trusttable은 원점수를 숨기지 않습니다. 보정 점수가 왜 달라졌는지 원점수와 함께
+            비교할 수 있게 보여줍니다.
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>규칙 기반 가중치</CardTitle>
+            <CardTitle>검증되지 않은 리뷰는 낮은 가중치</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm leading-6 text-muted-foreground">
-            리뷰 품질과 사용자 신뢰도는 글 길이, 사진, 리뷰 수, 신고, 숨김 이력,
-            실제 재방문 리뷰 패턴 같은 명확한 규칙으로 계산합니다.
+          <CardContent className="text-sm leading-6 text-zinc-600">
+            구매 미인증 리뷰는 제외하지 않고 낮은 가중치로 반영합니다. 신뢰도 신호는 점수
+            설명과 함께 투명하게 노출됩니다.
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>원점수 공개</CardTitle>
+            <CardTitle>최근 상승 매장 감지</CardTitle>
           </CardHeader>
-          <CardContent className="flex items-center gap-2 text-sm leading-6 text-muted-foreground">
-            <span>원점수와 보정 점수를 함께 표시합니다.</span>
-            <HelpTooltip label="원점수와 보정 점수">{SCORE_EXPLANATION}</HelpTooltip>
+          <CardContent className="text-sm leading-6 text-zinc-600">
+            최근 30일 리뷰가 과거 평균보다 충분히 높고 표본 수가 확보된 매장만 “떠오르는
+            매장”으로 표시합니다.
           </CardContent>
         </Card>
       </section>

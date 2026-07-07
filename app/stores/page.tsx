@@ -45,11 +45,17 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
 
   return (
     <div className="container py-8 sm:py-10">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mb-8 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:p-8">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">매장 목록</h1>
-          <p className="mt-2 text-sm leading-6 text-zinc-500">
-            지역과 카테고리로 필터링합니다. 원점수는 항상 함께 표시됩니다.
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            Store Intelligence
+          </p>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
+            매장별 신뢰 점수 현황
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500">
+            지역과 카테고리별로 원점수, 보정 점수, 인증 상태, 최근 상승 신호를 비교합니다.
           </p>
         </div>
         <form className="grid gap-3 sm:grid-cols-[160px_160px_auto]" action="/stores">
@@ -77,6 +83,7 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
           </div>
           <Button type="submit">적용</Button>
         </form>
+        </div>
       </div>
 
       {supabaseIssue ? (

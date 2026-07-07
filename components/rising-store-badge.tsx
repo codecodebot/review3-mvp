@@ -2,13 +2,13 @@ import { Badge } from "@/components/ui/badge";
 import type { StoreRisingSignal } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-type RisingStoreBadgeProps = {
+type RisingBadgeProps = {
   rising?: StoreRisingSignal | null;
   compact?: boolean;
   className?: string;
 };
 
-export function RisingStoreBadge({ rising, compact = false, className }: RisingStoreBadgeProps) {
+export function RisingBadge({ rising, compact = false, className }: RisingBadgeProps) {
   if (!rising?.isRising) {
     return null;
   }
@@ -17,7 +17,7 @@ export function RisingStoreBadge({ rising, compact = false, className }: RisingS
     <Badge
       variant="outline"
       className={cn(
-        "border-amber-200 bg-amber-50/80 font-semibold text-amber-800",
+        "border-indigo-200 bg-indigo-50 text-indigo-800",
         compact ? "px-2 py-0.5 text-[11px]" : "px-2.5 py-1 text-xs",
         className
       )}
@@ -29,4 +29,8 @@ export function RisingStoreBadge({ rising, compact = false, className }: RisingS
       ) : null}
     </Badge>
   );
+}
+
+export function RisingStoreBadge(props: RisingBadgeProps) {
+  return <RisingBadge {...props} />;
 }
