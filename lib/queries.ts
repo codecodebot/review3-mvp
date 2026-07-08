@@ -27,6 +27,14 @@ export type AdminReview = ReviewWithProfile & {
   store: Pick<Store, "id" | "name"> | null;
 };
 
+type RankingReviewWithoutSectionWeight = Omit<RankingReview, "text_completeness_weight">;
+
+const RANKING_REVIEW_SELECT =
+  "store_id,taste_score,service_score,environment_score,created_at,purchase_verified,text_completeness_weight";
+
+const LEGACY_RANKING_REVIEW_SELECT =
+  "store_id,taste_score,service_score,environment_score,created_at,purchase_verified";
+
 function hasFilter(value: string | undefined): value is string {
   return Boolean(value && value !== "all");
 }
@@ -68,13 +76,34 @@ async function getScoringReviewsForStores(storeIds: string[]) {
   const supabase = createClient();
   const { data: reviews, error } = await supabase
     .from("reviews")
-    .select("store_id,taste_score,service_score,environment_score,created_at,purchase_verified")
+    .select(RANKING_REVIEW_SELECT)
     .in("store_id", storeIds)
     .eq("is_hidden", false)
     .eq("excluded_from_score", false)
     .returns<RankingReview[]>();
 
   if (error) {
+    if (/text_completeness_weight|positive_text|negative_text/i.test(error.message)) {
+      const { data: legacyReviews, error: legacyError } = await supabase
+        .from("reviews")
+        .select(LEGACY_RANKING_REVIEW_SELECT)
+        .in("store_id", storeIds)
+        .eq("is_hidden", false)
+        .eq("excluded_from_score", false)
+        .returns<RankingReviewWithoutSectionWeight[]>();
+
+      if (legacyError) {
+        throw new Error(`Unable to load scoring reviews: ${legacyError.message}`);
+      }
+
+      return groupReviewsByStore(
+        (legacyReviews ?? []).map((review) => ({
+          ...review,
+          text_completeness_weight: 1
+        }))
+      );
+    }
+
     throw new Error(`Unable to load scoring reviews: ${error.message}`);
   }
 
@@ -272,17 +301,36 @@ export async function getRankedStores() {
   const visibleStoreIds = visibleStores.map((store) => store.id);
   const { data: reviews, error: reviewError } = await supabase
     .from("reviews")
-    .select("store_id,taste_score,service_score,environment_score,created_at,purchase_verified")
+    .select(RANKING_REVIEW_SELECT)
     .in("store_id", visibleStoreIds)
     .eq("is_hidden", false)
     .eq("excluded_from_score", false)
     .returns<RankingReview[]>();
 
-  if (reviewError) {
+  let rankingReviews = reviews ?? [];
+
+  if (reviewError && /text_completeness_weight|positive_text|negative_text/i.test(reviewError.message)) {
+    const { data: legacyReviews, error: legacyReviewError } = await supabase
+      .from("reviews")
+      .select(LEGACY_RANKING_REVIEW_SELECT)
+      .in("store_id", visibleStoreIds)
+      .eq("is_hidden", false)
+      .eq("excluded_from_score", false)
+      .returns<RankingReviewWithoutSectionWeight[]>();
+
+    if (legacyReviewError) {
+      throw new Error(`Unable to load ranking reviews: ${legacyReviewError.message}`);
+    }
+
+    rankingReviews = (legacyReviews ?? []).map((review) => ({
+      ...review,
+      text_completeness_weight: 1
+    }));
+  } else if (reviewError) {
     throw new Error(`Unable to load ranking reviews: ${reviewError.message}`);
   }
 
-  const reviewsByStoreId = groupReviewsByStore(reviews ?? []);
+  const reviewsByStoreId = groupReviewsByStore(rankingReviews);
 
   const storeById = new Map(visibleStores.map((store) => [store.id, store]));
   return scores

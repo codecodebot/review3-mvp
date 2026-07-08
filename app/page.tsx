@@ -14,10 +14,10 @@ type HomePageProps = {
 };
 
 const trustSignals = [
-  "Verified reviews weighted higher",
-  "Unverified reviews weighted lower",
-  "Recent review trend considered",
-  "All stores aligned around TT Score 3.0"
+  "구매 인증 리뷰는 더 높게 반영",
+  "구매 미인증 리뷰는 낮은 가중치 적용",
+  "최근 리뷰 흐름 반영",
+  "모든 매장은 TT Index 3.0 평균선 기준 정렬"
 ];
 
 export default function HomePage({ searchParams }: HomePageProps) {
@@ -47,11 +47,11 @@ export default function HomePage({ searchParams }: HomePageProps) {
                 Review Trust Infrastructure
               </p>
               <h1 className="max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-zinc-950 sm:text-6xl">
-                inflated ratings를 신뢰 가능한 점수로 다시 계산합니다.
+                부풀려진 별점을 신뢰 가능한 지표로 다시 계산합니다.
               </h1>
               <p className="max-w-2xl text-base leading-7 text-zinc-600">
                 Trusttable은 RAW Score를 숨기지 않고, 구매 인증·최근 리뷰 흐름·리뷰어 신뢰 패턴을
-                반영해 TT Score를 계산하는 리뷰 신뢰 분석 대시보드입니다.
+                반영해 TT Index를 계산하는 리뷰 신뢰 분석 대시보드입니다.
               </p>
             </div>
 
@@ -87,7 +87,7 @@ export default function HomePage({ searchParams }: HomePageProps) {
             />
             <div className="grid gap-3 sm:grid-cols-2">
               <MetricCard label="RAW Score" value="4.42" helper="사용자 리뷰 원래 평균" />
-              <MetricCard label="TT Score" value="3.34" helper="시장 평균선 3.0 기준" />
+              <MetricCard label="TT Index" value="3.34" helper="시장 평균선 3.0 기준" />
             </div>
           </div>
         </div>
@@ -107,10 +107,10 @@ export default function HomePage({ searchParams }: HomePageProps) {
       <section className="mt-8 grid gap-4 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>RAW Score와 TT Score 동시 공개</CardTitle>
+            <CardTitle>RAW Score와 TT Index 동시 공개</CardTitle>
           </CardHeader>
           <CardContent className="text-sm leading-6 text-zinc-600">
-            Trusttable은 RAW Score를 숨기지 않습니다. TT Score가 왜 달라졌는지 RAW Score와 함께
+            Trusttable은 RAW Score를 숨기지 않습니다. TT Index가 왜 달라졌는지 RAW Score와 함께
             비교할 수 있게 보여줍니다.
           </CardContent>
         </Card>
@@ -119,8 +119,8 @@ export default function HomePage({ searchParams }: HomePageProps) {
             <CardTitle>검증되지 않은 리뷰는 낮은 가중치</CardTitle>
           </CardHeader>
           <CardContent className="text-sm leading-6 text-zinc-600">
-            구매 미인증 리뷰는 제외하지 않고 낮은 가중치로 반영합니다. 신뢰도 신호는 점수
-            설명과 함께 투명하게 노출됩니다.
+            구매 미인증 리뷰는 제외하지 않고 낮은 가중치로 반영합니다. 신뢰도 신호는 점수 설명과
+            함께 투명하게 노출됩니다.
           </CardContent>
         </Card>
         <Card>
@@ -128,8 +128,8 @@ export default function HomePage({ searchParams }: HomePageProps) {
             <CardTitle>최근 상승 매장 감지</CardTitle>
           </CardHeader>
           <CardContent className="text-sm leading-6 text-zinc-600">
-            최근 30일 리뷰가 과거 평균보다 충분히 높고 표본 수가 확보된 매장만 “떠오르는
-            매장”으로 표시합니다.
+            최근 30일 리뷰가 과거 평균보다 충분히 높고 표본 수가 확보된 매장만 떠오르는 매장으로
+            표시합니다.
           </CardContent>
         </Card>
       </section>

@@ -12,52 +12,6 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const meaningCards = [
-  {
-    title: "RAW Score",
-    body: "리뷰 품질과 리뷰어 신뢰도를 반영한 신뢰 가중 원점수"
-  },
-  {
-    title: "Market Average",
-    body: "현재 매장들의 평균 리뷰 신호"
-  },
-  {
-    title: "TT Score",
-    body: "시장 평균을 3.0으로 맞춰 다시 해석한 점수"
-  }
-];
-
-const scoreFlow = [
-  {
-    title: "리뷰 세부 평가",
-    items: ["맛 평가", "서비스 평가", "분위기 평가"]
-  },
-  {
-    title: "리뷰 품질",
-    items: ["리뷰 내용의 충분함", "사진 여부", "구체적인 평가 사유"]
-  },
-  {
-    title: "리뷰어 신뢰도",
-    items: ["리뷰 작성 이력", "평점 패턴", "신고 또는 숨김 이력 등 신뢰 신호"]
-  },
-  {
-    title: "RAW Score",
-    items: ["리뷰별 영향력을 반영한 신뢰 가중 원점수"]
-  },
-  {
-    title: "TT Score",
-    items: ["시장 평균 3.0 기준으로 다시 정렬한 최종 점수"]
-  }
-];
-
-const reflectedItems = [
-  "맛·서비스·분위기 평가",
-  "리뷰 품질",
-  "리뷰어 신뢰도"
-];
-
-const referenceItems = ["인증 상태", "재방문 비율", "신뢰도 배지"];
-
 function average(values: number[]) {
   const safeValues = values.filter((value) => Number.isFinite(value));
 
@@ -124,15 +78,14 @@ export default async function TtIndexPage() {
             TT Index Methodology
           </p>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-5xl">
-            TT Score Methodology
+            TT Index는 일반 별점이 아닙니다
           </h1>
           <p className="mt-5 max-w-3xl text-lg leading-8 text-zinc-700">
-            TT Score는 Trusttable의 시장 평균 기준 점수입니다. RAW Score는 리뷰 품질과 리뷰어
-            신뢰도를 반영한 원점수이고, TT Score는 그 점수를 시장 평균 3.0 기준으로 다시 정렬한
-            지표입니다.
+            RAW Score는 사용자가 남긴 원래 리뷰 점수입니다. TT Index는 RAW Score를 시장 평균
+            3.0 기준으로 다시 해석해, 평균보다 얼마나 높은지 또는 낮은지를 보여주는 참고 지표입니다.
           </p>
           <div className="mt-6 inline-flex rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-3 text-base font-semibold text-zinc-950">
-            TT Score 3.0 = 시장 평균선
+            3.0은 낮은 점수가 아니라, Trusttable의 시장 평균선입니다.
           </div>
         </div>
       </section>
@@ -144,112 +97,88 @@ export default async function TtIndexPage() {
       ) : null}
 
       <section className="mt-6 grid gap-3 sm:grid-cols-3">
-        <MetricCard label="Average TT Score" value="3.00" helper="시장 평균선" />
+        <MetricCard label="Average TT Index" value="3.00" helper="시장 평균선" />
         <MetricCard
           label="Average RAW Score"
           value={formatScore(averageRawScore)}
           helper="신뢰 가중 원점수 평균"
         />
         <MetricCard
-          label="Score Basis"
-          value="Current Dataset"
-          helper="현재 Trusttable 데이터 기준"
+          label="Stores Analyzed"
+          value={distributionSummary.storeCount.toLocaleString()}
+          helper="현재 데이터 기준"
         />
       </section>
 
       <section className="mt-6 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:p-8">
         <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-          What TT Score Means
+          What TT Index Means
         </p>
         <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950">
           RAW Score를 시장 평균선 위에서 다시 읽습니다
         </h2>
+        <p className="mt-4 max-w-3xl text-sm font-medium leading-6 text-zinc-700">
+          Trusttable은 매장의 별점을 깎기 위한 서비스가 아닙니다. 기존 RAW Score는 그대로 보여주고,
+          TT Index는 시장 평균 대비 위치를 해석하는 보조 지표입니다.
+        </p>
         <div className="mt-6 grid gap-3 md:grid-cols-3">
-          {meaningCards.map((card) => (
-            <div key={card.title} className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-              <div className="text-sm font-semibold text-zinc-950">{card.title}</div>
-              <p className="mt-2 text-sm leading-6 text-zinc-600">{card.body}</p>
-            </div>
-          ))}
-        </div>
-        <p className="mt-5 max-w-3xl text-sm font-medium leading-6 text-zinc-700">
-          3.0보다 높으면 평균보다 강한 리뷰 신호, 3.0보다 낮으면 평균보다 약한 리뷰 신호로
-          해석합니다. TT Score는 매장의 절대적 우열을 확정하는 점수가 아니라 선택을 돕는 참고
-          지표입니다.
-        </p>
-      </section>
-
-      <section className="mt-6 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-          Score Inputs
-        </p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950">
-          점수 계산에서 고려하는 흐름
-        </h2>
-        <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          {scoreFlow.map((step, index) => (
-            <div key={step.title} className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-              <div className="flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-950 text-xs font-semibold text-white">
-                  {index + 1}
-                </span>
-                <h3 className="text-sm font-semibold text-zinc-950">{step.title}</h3>
-              </div>
-              <div className="mt-4">
-                <SimpleList items={step.items} />
-              </div>
-            </div>
-          ))}
+          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+            <div className="text-sm font-semibold text-zinc-950">RAW Score</div>
+            <p className="mt-2 text-sm leading-6 text-zinc-600">
+              사용자가 남긴 원래 리뷰 점수의 신뢰 가중 평균입니다.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+            <div className="text-sm font-semibold text-zinc-950">시장 평균</div>
+            <p className="mt-2 text-sm leading-6 text-zinc-600">
+              현재 비교 대상 매장들의 RAW Score 평균입니다.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+            <div className="text-sm font-semibold text-zinc-950">TT Index</div>
+            <p className="mt-2 text-sm leading-6 text-zinc-600">
+              시장 평균을 3.0으로 맞춘 뒤 각 매장의 상대 위치를 보여줍니다.
+            </p>
+          </div>
         </div>
       </section>
 
       <section className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>계산에 반영되는 항목</CardTitle>
+            <CardTitle>계산 공식</CardTitle>
           </CardHeader>
-          <CardContent>
-            <SimpleList items={reflectedItems} />
+          <CardContent className="space-y-4">
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-sm text-zinc-900">
+              TT Index = RAW Score - Market Average RAW Score + 3.0
+            </div>
+            <p className="text-sm leading-6 text-zinc-600">
+              예를 들어 시장 평균 RAW가 4.45이고 A매장의 RAW가 4.75라면 TT Index는
+              4.75 - 4.45 + 3.0 = 3.30입니다.
+            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>참고 지표로 표시</CardTitle>
+            <CardTitle>참고해야 할 점</CardTitle>
           </CardHeader>
           <CardContent>
-            <SimpleList items={referenceItems} />
+            <SimpleList
+              items={[
+                "TT Index는 매장의 절대적 우열을 확정하는 점수가 아니라 선택을 돕는 참고 지표입니다.",
+                "리뷰 수가 너무 적은 매장은 RAW Score가 높아도 과도하게 높게 평가되지 않을 수 있습니다.",
+                "구매 미인증 리뷰는 제외하지 않고 낮은 가중치로 반영합니다.",
+                "최근 리뷰 흐름과 리뷰 신뢰 신호를 함께 살펴볼 수 있습니다."
+              ]}
+            />
           </CardContent>
         </Card>
-      </section>
-
-      <section className="mt-6 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:p-8">
-        <p className="text-sm font-medium leading-7 text-zinc-700">
-          원점수에는 리뷰 품질과 리뷰어 신뢰도가 반영됩니다. 인증 상태와 재방문 비율은 점수
-          가산점이 아니라 참고 지표로 표시됩니다.
-        </p>
       </section>
 
       <div className="mt-6">
         <ScoreDistributionChart summary={distributionSummary} />
       </div>
-
-      <section className="mt-6 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-          Technical Summary
-        </p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950">
-          기술 계산 요약
-        </h2>
-        <div className="mt-5 grid gap-3 text-sm leading-6 text-zinc-600 md:grid-cols-2">
-          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-            RAW Score는 리뷰 평가에 리뷰 품질과 리뷰어 신뢰도를 반영해 계산합니다.
-          </div>
-          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-zinc-900">
-            TT Score = clamp(RAW Score - Market Average RAW + 3.0, 1.0, 5.0)
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

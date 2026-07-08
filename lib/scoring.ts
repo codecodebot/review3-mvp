@@ -20,6 +20,7 @@ export type WeightedReviewInput = {
   environment_score: number;
   created_at?: string | null;
   purchase_verified?: boolean | null;
+  text_completeness_weight?: number | null;
 };
 
 export type RisingStoreSignal = {
@@ -169,6 +170,14 @@ export function calculatePurchaseVerificationWeight(purchaseVerified: boolean | 
   return purchaseVerified === false ? PURCHASE_UNVERIFIED_WEIGHT : PURCHASE_VERIFIED_WEIGHT;
 }
 
+export function calculateTextCompletenessWeight(weight: number | null | undefined) {
+  if (typeof weight !== "number" || !Number.isFinite(weight)) {
+    return 1;
+  }
+
+  return Math.min(1.06, Math.max(1, weight));
+}
+
 export function calculateRecencyWeightedRawScore(
   reviews: WeightedReviewInput[],
   weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS,
@@ -182,7 +191,8 @@ export function calculateRecencyWeightedRawScore(
     (acc, review) => {
       const recencyWeight = calculateRecencyWeight(review.created_at, options);
       const purchaseWeight = calculatePurchaseVerificationWeight(review.purchase_verified);
-      const effectiveWeight = recencyWeight * purchaseWeight;
+      const textCompletenessWeight = calculateTextCompletenessWeight(review.text_completeness_weight);
+      const effectiveWeight = recencyWeight * purchaseWeight * textCompletenessWeight;
       const reviewScore = calculateReviewScore(
         review.taste_score,
         review.service_score,

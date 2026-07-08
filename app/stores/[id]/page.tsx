@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DatabaseSetupNotice } from "@/components/database-setup-notice";
-import { ReviewCard } from "@/components/review-card";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
+import { ReviewCard } from "@/components/review-card";
 import { RevisitRateDetail } from "@/components/revisit-rate";
 import { RisingStoreBadge } from "@/components/rising-store-badge";
 import { ScoreBadge } from "@/components/score-badge";
@@ -54,8 +54,10 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
     notFound();
   }
 
-  const mismatchReviewCount = reviews.filter((review) => review.rating_text_mismatch).length;
-  const mismatchReviewRate = reviews.length ? (mismatchReviewCount / reviews.length) * 100 : 0;
+  const ratingTextMismatchCount = reviews.filter((review) => review.rating_text_mismatch).length;
+  const sectionMismatchCount = reviews.filter((review) => review.section_sentiment_mismatch).length;
+  const ratingTextMismatchRate = reviews.length ? (ratingTextMismatchCount / reviews.length) * 100 : 0;
+  const sectionMismatchRate = reviews.length ? (sectionMismatchCount / reviews.length) * 100 : 0;
 
   return (
     <div className="container py-8">
@@ -95,7 +97,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
             <div className="grid gap-3">
               <ScoreBadge label="맛" value={store.score?.taste_score} />
               <ScoreBadge label="서비스" value={store.score?.service_score} />
-              <ScoreBadge label="공간" value={store.score?.environment_score} />
+              <ScoreBadge label="분위기" value={store.score?.environment_score} />
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
@@ -113,18 +115,27 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
                 </div>
               </div>
               <div>
-                <div className="text-muted-foreground">TT 점수</div>
+                <div className="text-muted-foreground">TT Index</div>
                 <div className="font-medium">{store.score?.ranking_score.toFixed(2) ?? "없음"}</div>
               </div>
             </div>
             <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 text-sm">
               <div className="font-semibold text-zinc-950">리뷰 신호</div>
-              <div className="mt-2 text-zinc-700">
-                점수-내용 불일치 리뷰 {mismatchReviewCount}개
-                <span className="text-zinc-500"> · 전체 리뷰 대비 {mismatchReviewRate.toFixed(1)}%</span>
+              <div className="mt-2 space-y-1 text-zinc-700">
+                <div>
+                  입력 항목 검토 필요 리뷰 {sectionMismatchCount}개
+                  <span className="text-zinc-500"> · 전체 리뷰 대비 {sectionMismatchRate.toFixed(1)}%</span>
+                </div>
+                <div>
+                  점수-내용 불일치 리뷰 {ratingTextMismatchCount}개
+                  <span className="text-zinc-500">
+                    {" "}
+                    · 전체 리뷰 대비 {ratingTextMismatchRate.toFixed(1)}%
+                  </span>
+                </div>
               </div>
               <p className="mt-2 text-xs leading-5 text-zinc-500">
-                높은 점수와 부정적인 리뷰 내용이 함께 감지된 보조 신뢰도 지표입니다.
+                이 신호는 매장 평가를 직접 확정하지 않고, 리뷰 내용을 더 살펴볼 수 있게 돕는 참고 지표입니다.
               </p>
             </div>
           </CardContent>

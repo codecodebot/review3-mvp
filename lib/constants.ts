@@ -1,10 +1,10 @@
 export const SCORE_EXPLANATION =
-  "RAW Score는 사용자가 남긴 원래 리뷰 점수의 평균입니다. TT Score는 시장 평균 RAW 점수를 3.0으로 맞춘 뒤, 평균보다 높은 매장은 3.0보다 높게, 낮은 매장은 3.0보다 낮게 보여주는 참고 지표입니다.";
+  "RAW Score는 사용자가 남긴 원래 리뷰 점수의 평균입니다. TT Index는 시장 평균 RAW 점수를 3.0으로 맞춘 뒤, 평균보다 높은 매장은 3.0보다 높게, 낮은 매장은 3.0보다 낮게 보여주는 참고 지표입니다.";
 
 export const REVIEW_DIMENSIONS = [
   { key: "taste_score", label: "맛" },
   { key: "service_score", label: "서비스" },
-  { key: "environment_score", label: "공간" }
+  { key: "environment_score", label: "분위기" }
 ] as const;
 
 export const STORE_CATEGORIES = [

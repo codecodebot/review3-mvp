@@ -6,6 +6,7 @@ type StarRatingProps = {
   size?: "sm" | "md" | "lg";
   showValue?: boolean;
   label?: string;
+  color?: string;
   className?: string;
 };
 
@@ -21,13 +22,14 @@ const gapClass = {
   lg: "gap-1"
 } satisfies Record<NonNullable<StarRatingProps["size"]>, string>;
 
-function StarIcon({ className }: { className?: string }) {
+function StarIcon({ className, color }: { className?: string; color?: string }) {
   return (
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
       className={className}
       fill="currentColor"
+      style={color ? { color } : undefined}
       xmlns="http://www.w3.org/2000/svg"
     >
       <path d="M12 2.75l2.78 5.63 6.22.9-4.5 4.39 1.06 6.2L12 16.95 6.44 19.87l1.06-6.2L3 9.28l6.22-.9L12 2.75z" />
@@ -40,7 +42,8 @@ export function StarRating({
   max = 5,
   size = "md",
   showValue = true,
-  label = "TT 점수",
+  label = "TT Index",
+  color = "#f59e0b",
   className
 }: StarRatingProps) {
   const safeMax = Number.isFinite(max) ? Math.max(1, Math.floor(max)) : 5;
@@ -51,7 +54,7 @@ export function StarRating({
     <div
       className={cn("inline-flex items-center gap-2", className)}
       role="img"
-      aria-label={`${label} ${safeValue.toFixed(2)}점`}
+      aria-label={`${label} ${safeValue.toFixed(2)}점, ${safeMax}점 만점`}
     >
       <div className={cn("flex items-center", gapClass[size])}>
         {Array.from({ length: safeMax }, (_, index) => {
@@ -71,7 +74,7 @@ export function StarRating({
                 style={{ width: `${fillPercent}%` }}
                 aria-hidden="true"
               >
-                <StarIcon className={cn(sizeClass[size], "text-amber-400")} />
+                <StarIcon className={sizeClass[size]} color={color} />
               </span>
             </span>
           );

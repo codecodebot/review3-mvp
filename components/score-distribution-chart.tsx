@@ -86,11 +86,11 @@ export function ScoreDistributionChart({ summary }: ScoreDistributionChartProps)
             Distribution Comparison
           </p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950">
-            RAW Score와 TT Score 분포 비교
+            RAW Score와 TT Index 분포 비교
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-600">
-            RAW Score는 기존 별점처럼 높은 구간에 몰릴 수 있습니다. TT Score는 같은 매장 집합을
-            시장 평균선 3.0 기준으로 다시 정렬해 매장 간 차이를 더 쉽게 비교하도록 돕습니다.
+            RAW Score는 기존 별점처럼 높은 구간에 몰릴 수 있습니다. TT Index는 같은 매장 집합을
+            시장 평균 3.0 기준으로 다시 정렬해 매장 간 차이를 더 읽기 쉽게 보여줍니다.
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-800">
@@ -107,18 +107,17 @@ export function ScoreDistributionChart({ summary }: ScoreDistributionChartProps)
           averageValue={summary.rawAverage}
         />
         <DistributionPanel
-          title="TT Score 분포"
+          title="TT Index 분포"
           description="시장 평균 3.0 재정렬 기준"
           buckets={summary.ttDistribution}
           averageLabel="TT 평균"
           averageValue={summary.ttAverage}
-          markerLabel={`TT Score ${summary.marketAverageLine.toFixed(1)} = 시장 평균선`}
+          markerLabel={`TT Index ${summary.marketAverageLine.toFixed(1)} = 시장 평균선`}
         />
       </div>
 
       <p className="mt-4 text-xs leading-5 text-zinc-500">
-        두 분포는 동일한 매장 집합을 기준으로 계산됩니다. 데이터 연결이 없거나 점수 데이터가
-        없으면 분포는 비어 있을 수 있습니다.
+        분포는 현재 데이터 기준으로 계산되며, 리뷰 수와 데이터 업데이트에 따라 달라질 수 있습니다.
       </p>
     </section>
   );

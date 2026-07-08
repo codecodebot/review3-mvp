@@ -16,27 +16,44 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function RatingTextMismatchBadge() {
+function TooltipBadge({
+  label,
+  tooltip,
+  className
+}: {
+  label: string;
+  tooltip: string;
+  className?: string;
+}) {
   return (
     <span className="group relative inline-flex">
-      <Badge
-        variant="warning"
-        className="cursor-help px-2 py-0.5 text-[10px]"
-        tabIndex={0}
-        aria-label="점수-본문 불일치 의심: 높은 점수와 부정적인 리뷰 내용이 함께 감지되었습니다."
-      >
-        점수-본문 불일치 의심
+      <Badge variant="warning" className={className} tabIndex={0} aria-label={`${label}: ${tooltip}`}>
+        {label}
       </Badge>
       <span className="pointer-events-none absolute left-1/2 top-6 z-20 hidden w-72 -translate-x-1/2 rounded-md border border-amber-200 bg-white px-3 py-2 text-xs leading-5 text-zinc-700 shadow-lg shadow-zinc-950/5 group-hover:block group-focus-within:block">
-        높은 점수와 부정적인 리뷰 내용이 함께 감지되었습니다.
+        {tooltip}
       </span>
     </span>
+  );
+}
+
+function ReviewSection({ title, text }: { title: string; text: string | null }) {
+  if (!text?.trim()) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+      <div className="text-xs font-semibold text-zinc-500">{title}</div>
+      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-zinc-800">{text}</p>
+    </div>
   );
 }
 
 export function ReviewCard({ review }: ReviewCardProps) {
   const isDemoReview = review.is_synthetic || review.profile?.is_synthetic;
   const purchaseVerified = review.purchase_verified ?? true;
+  const hasStructuredText = Boolean(review.positive_text?.trim() || review.negative_text?.trim());
 
   return (
     <Card>
@@ -58,7 +75,20 @@ export function ReviewCard({ review }: ReviewCardProps) {
               >
                 {purchaseVerified ? "구매 인증" : "구매 미인증"}
               </Badge>
-              {review.rating_text_mismatch ? <RatingTextMismatchBadge /> : null}
+              {review.section_sentiment_mismatch ? (
+                <TooltipBadge
+                  label="입력 항목 검토 필요"
+                  tooltip={review.section_mismatch_reason ?? "작성 항목과 내용의 감정 방향이 다르게 감지되었습니다."}
+                  className="cursor-help px-2 py-0.5 text-[10px]"
+                />
+              ) : null}
+              {review.rating_text_mismatch ? (
+                <TooltipBadge
+                  label="불일치"
+                  tooltip="높은 점수와 부정적인 리뷰 내용이 함께 감지되었습니다."
+                  className="cursor-help px-2 py-0.5 text-[10px]"
+                />
+              ) : null}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">{formatDate(review.created_at)}</p>
           </div>
@@ -72,11 +102,20 @@ export function ReviewCard({ review }: ReviewCardProps) {
         <div className="grid gap-2 sm:grid-cols-3">
           <ScoreBadge label="맛" value={review.taste_score} />
           <ScoreBadge label="서비스" value={review.service_score} />
-          <ScoreBadge label="공간" value={review.environment_score} />
+          <ScoreBadge label="분위기" value={review.environment_score} />
         </div>
-        <p className="whitespace-pre-wrap text-sm leading-6">
-          {review.review_text || "작성된 리뷰가 없습니다."}
-        </p>
+
+        {hasStructuredText ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            <ReviewSection title="좋았던 점" text={review.positive_text} />
+            <ReviewSection title="아쉬웠던 점" text={review.negative_text} />
+          </div>
+        ) : (
+          <p className="whitespace-pre-wrap text-sm leading-6 text-zinc-700">
+            {review.review_text || "작성된 리뷰 내용이 없습니다."}
+          </p>
+        )}
+
         {!purchaseVerified ? (
           <p className="text-xs font-medium text-zinc-500">
             구매 미인증 리뷰는 점수 계산에서 낮은 가중치로 반영됩니다.

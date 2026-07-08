@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { calculateReviewScore } from "@/lib/scoring";
-import { analyzeReviewSentiment } from "@/lib/sentiment";
+import { analyzeReviewSections } from "@/lib/sentiment";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/types";
 
@@ -27,6 +27,15 @@ function scoreValue(formData: FormData, key: string) {
   return value;
 }
 
+function buildLegacyReviewText(positiveText: string | null, negativeText: string | null) {
+  const sections = [
+    positiveText ? `좋았던 점\n${positiveText}` : null,
+    negativeText ? `아쉬웠던 점\n${negativeText}` : null
+  ].filter((value): value is string => Boolean(value));
+
+  return sections.length ? sections.join("\n\n") : null;
+}
+
 export async function createReviewAction(formData: FormData) {
   const supabase = createClient();
   const {
@@ -43,26 +52,15 @@ export async function createReviewAction(formData: FormData) {
   const serviceScore = scoreValue(formData, "service_score");
   const environmentScore = scoreValue(formData, "environment_score");
   const reviewScore = calculateReviewScore(tasteScore, serviceScore, environmentScore);
-  const highScoreReason = optionalStringValue(formData, "high_score_reason");
-  const reviewText = optionalStringValue(formData, "review_text");
-  const sentimentInput = [
-    reviewText,
-    highScoreReason,
-    optionalStringValue(formData, "low_score_reason"),
-    optionalStringValue(formData, "reason")
-  ]
-    .filter((value): value is string => Boolean(value))
-    .join("\n");
+  const positiveText = optionalStringValue(formData, "positive_text");
+  const negativeText = optionalStringValue(formData, "negative_text");
+  const reviewText = buildLegacyReviewText(positiveText, negativeText);
 
   if (!storeId) {
     throw new Error("매장 ID가 필요합니다.");
   }
 
-  if (reviewScore >= 4.5 && (!highScoreReason || highScoreReason.length < 10)) {
-    throw new Error("고득점 리뷰는 10자 이상의 이유가 필요합니다.");
-  }
-
-  const sentiment = await analyzeReviewSentiment(sentimentInput, { reviewScore });
+  const sectionSentiment = await analyzeReviewSections({ positiveText, negativeText });
   const insertPayload = {
     store_id: storeId,
     user_id: user.id,
@@ -71,25 +69,48 @@ export async function createReviewAction(formData: FormData) {
     environment_score: environmentScore,
     review_score: reviewScore,
     review_text: reviewText,
+    positive_text: positiveText,
+    negative_text: negativeText,
     photo_url: optionalStringValue(formData, "photo_url"),
     visit_type: optionalStringValue(formData, "visit_type"),
     price_satisfaction: optionalStringValue(formData, "price_satisfaction"),
     is_high_score: reviewScore >= 4.5,
-    high_score_reason: highScoreReason,
-    sentiment_label: sentiment.sentimentLabel,
-    sentiment_score: sentiment.sentimentScore,
-    negative_signal_count: sentiment.negativeSignalCount,
-    negative_signals: sentiment.negativeSignals,
-    rating_text_mismatch: sentiment.ratingTextMismatch,
-    mismatch_reason: sentiment.mismatchReason,
-    mismatch_confidence: sentiment.mismatchConfidence
+    high_score_reason: null,
+    sentiment_label: "neutral",
+    sentiment_score: 0,
+    negative_signal_count: 0,
+    negative_signals: [],
+    rating_text_mismatch: false,
+    mismatch_reason: null,
+    mismatch_confidence: 0,
+    section_sentiment_mismatch: sectionSentiment.sectionSentimentMismatch,
+    section_mismatch_reason: sectionSentiment.sectionMismatchReason,
+    positive_text_sentiment_label: sectionSentiment.positiveTextSentiment?.sentimentLabel ?? null,
+    negative_text_sentiment_label: sectionSentiment.negativeTextSentiment?.sentimentLabel ?? null,
+    positive_text_sentiment_score: sectionSentiment.positiveTextSentiment?.sentimentScore ?? null,
+    negative_text_sentiment_score: sectionSentiment.negativeTextSentiment?.sentimentScore ?? null,
+    text_completeness_weight: sectionSentiment.textCompletenessWeight
   } satisfies Database["public"]["Tables"]["reviews"]["Insert"];
 
   const { error } = await supabase.from("reviews").insert(insertPayload);
 
-  if (error && /sentiment|negative_signal|rating_text_mismatch|mismatch/i.test(error.message)) {
-    console.error("Review sentiment columns unavailable; retrying without sentiment fields", error);
+  if (
+    error &&
+    /sentiment|negative_signal|rating_text_mismatch|mismatch|positive_text|negative_text|text_completeness/i.test(
+      error.message
+    )
+  ) {
+    console.error("Review sentiment section columns unavailable; retrying without section fields", error);
     const {
+      positive_text: _positiveText,
+      negative_text: _negativeText,
+      section_sentiment_mismatch: _sectionSentimentMismatch,
+      section_mismatch_reason: _sectionMismatchReason,
+      positive_text_sentiment_label: _positiveTextSentimentLabel,
+      negative_text_sentiment_label: _negativeTextSentimentLabel,
+      positive_text_sentiment_score: _positiveTextSentimentScore,
+      negative_text_sentiment_score: _negativeTextSentimentScore,
+      text_completeness_weight: _textCompletenessWeight,
       sentiment_label: _sentimentLabel,
       sentiment_score: _sentimentScore,
       negative_signal_count: _negativeSignalCount,

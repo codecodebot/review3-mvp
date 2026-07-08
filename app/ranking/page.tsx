@@ -32,10 +32,10 @@ export default async function RankingPage() {
             Trusttable Ranking Console
           </p>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-5xl">
-            inflated ratings를 TT Score로 다시 해석해 신뢰 가능한 매장 순위를 보여줍니다.
+            부풀려진 별점을 TT Index로 다시 해석해 신뢰 가능한 매장 순위를 보여줍니다.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600">
-            RAW Score, TT Score, 구매 인증 가중치, 최근 리뷰 상승 신호를 한 화면에서 비교합니다.
+            RAW Score, TT Index, 구매 인증 가중치, 최근 리뷰 상승 신호를 한 화면에서 비교합니다.
             점수는 숨기지 않고 왜 바뀌었는지 함께 설명합니다.
           </p>
         </div>

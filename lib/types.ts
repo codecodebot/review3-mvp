@@ -79,6 +79,8 @@ export type Database = {
           environment_score: number;
           review_score: number | null;
           review_text: string | null;
+          positive_text: string | null;
+          negative_text: string | null;
           photo_url: string | null;
           visit_type: string | null;
           price_satisfaction: string | null;
@@ -98,6 +100,13 @@ export type Database = {
           rating_text_mismatch: boolean;
           mismatch_reason: string | null;
           mismatch_confidence: number | null;
+          section_sentiment_mismatch: boolean;
+          section_mismatch_reason: string | null;
+          positive_text_sentiment_label: string | null;
+          negative_text_sentiment_label: string | null;
+          positive_text_sentiment_score: number | null;
+          negative_text_sentiment_score: number | null;
+          text_completeness_weight: number;
           created_at: string;
           updated_at: string;
         };
@@ -110,6 +119,8 @@ export type Database = {
           environment_score: number;
           review_score?: number | null;
           review_text?: string | null;
+          positive_text?: string | null;
+          negative_text?: string | null;
           photo_url?: string | null;
           visit_type?: string | null;
           price_satisfaction?: string | null;
@@ -129,6 +140,13 @@ export type Database = {
           rating_text_mismatch?: boolean;
           mismatch_reason?: string | null;
           mismatch_confidence?: number | null;
+          section_sentiment_mismatch?: boolean;
+          section_mismatch_reason?: string | null;
+          positive_text_sentiment_label?: string | null;
+          negative_text_sentiment_label?: string | null;
+          positive_text_sentiment_score?: number | null;
+          negative_text_sentiment_score?: number | null;
+          text_completeness_weight?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -369,6 +387,7 @@ export type RankingReview = Pick<
   | "environment_score"
   | "created_at"
   | "purchase_verified"
+  | "text_completeness_weight"
 >;
 
 export type StoreWithScoreAndReviews = StoreWithScore & {

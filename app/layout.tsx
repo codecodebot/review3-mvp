@@ -9,7 +9,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Trusttable",
-  description: "RAW Score와 TT Score를 함께 보여주는 리뷰 신뢰 분석 대시보드입니다.",
+  description: "RAW Score와 TT Index를 함께 보여주는 리뷰 신뢰 분석 대시보드입니다.",
   icons: {
     icon: "/icon.png",
     apple: "/icon.png"

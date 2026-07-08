@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RisingBadge } from "@/components/rising-store-badge";
 import { ScoreDelta } from "@/components/score-delta";
+import { StarRating } from "@/components/star-rating";
 import { TrustBadge } from "@/components/trust-badge";
 import { VerificationBadge } from "@/components/verification-badge";
 import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
@@ -19,6 +20,9 @@ type StoreRankCardProps = {
   rank: number;
   weights: ScoreWeights;
 };
+
+const RAW_STAR_COLOR = "#F4C430";
+const TT_STAR_COLOR = "#1F6F68";
 
 function formatScore(value: number) {
   return Number.isFinite(value) ? value.toFixed(2) : "0.00";
@@ -46,14 +50,14 @@ function scoreExplanation(store: StoreRankCardData) {
   }
 
   if (ttDelta < -0.25) {
-    return "RAW 점수가 시장 평균과 인증 가중치 적용 후 더 신중하게 해석됩니다.";
+    return "RAW 점수가 시장 평균과 검증 가중치 적용 후 더 신중하게 해석됩니다.";
   }
 
   if (ttDelta > 0.15) {
-    return "시장 평균 대비 리뷰 신호가 좋아 TT 점수가 RAW보다 높게 나타납니다.";
+    return "시장 평균 대비 리뷰 신호가 좋아 TT Index가 RAW보다 높게 나타납니다.";
   }
 
-  return "RAW Score와 TT Score가 안정적으로 정렬되어 있습니다.";
+  return "RAW Score와 TT Index가 안정적으로 정렬되어 있습니다.";
 }
 
 function MiniTrend({ store, weights }: StoreRankCardProps) {
@@ -95,7 +99,7 @@ function MiniTrend({ store, weights }: StoreRankCardProps) {
 export function StoreRankCard({ store, rank, weights }: StoreRankCardProps) {
   return (
     <article className="group rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.035)] transition hover:border-zinc-300 hover:shadow-[0_16px_40px_rgba(15,23,42,0.07)]">
-      <div className="grid gap-5 lg:grid-cols-[72px_minmax(0,1fr)_260px] lg:items-center">
+      <div className="grid gap-5 lg:grid-cols-[72px_minmax(0,1fr)_300px] lg:items-center">
         <div className="flex items-center gap-3 lg:block">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50 text-sm font-semibold tabular-nums text-zinc-950">
             #{rank}
@@ -142,14 +146,28 @@ export function StoreRankCard({ store, rank, weights }: StoreRankCardProps) {
               <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-zinc-950">
                 {formatScore(store.rawScore)}
               </div>
+              <StarRating
+                value={store.rawScore}
+                size="sm"
+                label="RAW Score"
+                color={RAW_STAR_COLOR}
+                className="mt-2"
+              />
             </div>
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
-                TT Score
+                TT Index
               </div>
               <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-zinc-950">
                 {formatScore(store.normalizedScore)}
               </div>
+              <StarRating
+                value={store.normalizedScore}
+                size="sm"
+                label="TT Index"
+                color={TT_STAR_COLOR}
+                className="mt-2"
+              />
             </div>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-zinc-500">

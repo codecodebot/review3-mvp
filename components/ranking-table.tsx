@@ -149,9 +149,9 @@ function ScoringWeightsPanel({
   }
 
   const controls = [
-    { key: "taste" as const, label: "Taste", value: percents.taste },
-    { key: "service" as const, label: "Service", value: percents.service },
-    { key: "environment" as const, label: "Environment", value: percents.environment }
+    { key: "taste" as const, label: "맛", value: percents.taste },
+    { key: "service" as const, label: "서비스", value: percents.service },
+    { key: "environment" as const, label: "분위기", value: percents.environment }
   ];
 
   return (
@@ -207,9 +207,9 @@ function ScoringWeightsPanel({
             </p>
           </div>
           <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-            <div className="font-semibold text-zinc-950">TT Score 평균선</div>
+            <div className="font-semibold text-zinc-950">TT Index 평균선</div>
             <p className="mt-1 leading-6">
-              모든 매장의 TT Score는 시장 평균 3.0을 중심으로 정렬됩니다.
+              모든 매장의 TT Index는 시장 평균 3.0을 중심으로 정렬됩니다.
             </p>
           </div>
         </div>
@@ -225,38 +225,22 @@ function DashboardSummary({
   stores: RankedStore[];
   rawAverage: number;
 }) {
-  const averageTtScore = average(stores.map((store) => store.normalizedScore));
+  const averageTtIndex = average(stores.map((store) => store.normalizedScore));
   const averageRaw = average(stores.map((store) => store.rawScore));
   const allReviews = stores.flatMap((store) => store.ranking_reviews);
   const verifiedReviewRatio = allReviews.length
     ? allReviews.filter((review) => review.purchase_verified !== false).length / allReviews.length
     : 0;
   const risingCount = stores.filter((store) => store.rising?.isRising).length;
-  const inflationGap = averageRaw - averageTtScore;
+  const inflationGap = averageRaw - averageTtIndex;
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-      <MetricCard
-        label="Average TT Score"
-        value={formatScore(averageTtScore)}
-        helper="시장 평균 3.0 기준"
-      />
-      <MetricCard label="Average RAW Score" value={formatScore(rawAverage)} helper="최근성·인증 가중 적용" />
-      <MetricCard
-        label="Inflation Gap"
-        value={formatSigned(inflationGap)}
-        helper="RAW와 TT 평균 차이"
-      />
-      <MetricCard
-        label="Verified Reviews"
-        value={formatPercent(verifiedReviewRatio)}
-        helper="구매 인증 리뷰 비율"
-      />
-      <MetricCard
-        label="Stores Analyzed"
-        value={stores.length.toLocaleString()}
-        helper={`상승 신호 ${risingCount}개`}
-      />
+      <MetricCard label="Average TT Index" value={formatScore(averageTtIndex)} helper="시장 평균 3.0 기준" />
+      <MetricCard label="Average RAW Score" value={formatScore(rawAverage)} helper="최근·구매인증 가중 적용" />
+      <MetricCard label="Inflation Gap" value={formatSigned(inflationGap)} helper="RAW와 TT 평균 차이" />
+      <MetricCard label="Verified Reviews" value={formatPercent(verifiedReviewRatio)} helper="구매 인증 리뷰 비율" />
+      <MetricCard label="Stores Analyzed" value={stores.length.toLocaleString()} helper={`상승 신호 ${risingCount}개`} />
     </div>
   );
 }
@@ -270,16 +254,16 @@ function TopStoreBrief({ store }: { store: RankedStore }) {
             Current Leader
           </p>
           <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-            #{1} {store.name}
+            #1 {store.name}
           </h2>
           <p className="mt-2 text-sm leading-6 text-zinc-300">
-            TT Score 기준 현재 가장 높은 매장입니다. RAW Score, 구매 인증 가중치, 최근 리뷰 흐름을
+            TT Index 기준 현재 가장 높은 매장입니다. RAW Score, 구매 인증 가중치, 최근 리뷰 흐름을
             함께 반영했습니다.
           </p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <div className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-400">
-            TT Score
+            TT Index
           </div>
           <div className="mt-2 text-5xl font-semibold tabular-nums tracking-tight text-white">
             {formatScore(store.normalizedScore)}
@@ -300,7 +284,7 @@ function ScoreComparisonChart({ stores }: { stores: RankedStore[] }) {
   return (
     <Card>
       <CardHeader className="pb-4">
-        <CardTitle>RAW Score와 TT Score 비교</CardTitle>
+        <CardTitle>RAW Score와 TT Index 비교</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {previewStores.map((store) => (
@@ -334,7 +318,7 @@ function ScoreComparisonChart({ stores }: { stores: RankedStore[] }) {
           </span>
           <span className="inline-flex items-center gap-1.5">
             <span className="h-1.5 w-4 rounded-full bg-zinc-950" />
-            TT Score
+            TT Index
           </span>
         </div>
       </CardContent>
@@ -344,10 +328,10 @@ function ScoreComparisonChart({ stores }: { stores: RankedStore[] }) {
 
 function MethodologyCard() {
   const labels = [
-    "Verified reviews weighted higher",
-    "Unverified reviews weighted lower",
-    "Recent review trend considered",
-    "All stores aligned around TT Score 3.0"
+    "구매 인증 리뷰는 더 높게 반영",
+    "구매 미인증 리뷰는 낮은 가중치 적용",
+    "최근 리뷰 흐름 반영",
+    "모든 매장은 TT Index 3.0 평균선 기준 정렬"
   ];
 
   return (
@@ -356,13 +340,13 @@ function MethodologyCard() {
         <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
           Methodology
         </p>
-        <CardTitle className="mt-2">How Trusttable calculates scores</CardTitle>
+        <CardTitle className="mt-2">Trusttable 점수 계산 방식</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-sm leading-6 text-zinc-800">
-          TT Score = Store RAW Score - Market Average RAW Score + 3.0
+          TT Index = Store RAW Score - Market Average RAW Score + 3.0
           <br />
-          RAW Score includes review recency, purchase verification, and reliability weights
+          RAW Score includes recency, purchase verification, and reliability weights
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
           {labels.map((label) => (
@@ -376,8 +360,7 @@ function MethodologyCard() {
         </div>
         <p className="text-sm leading-6 text-zinc-500">
           Trusttable은 RAW Score를 숨기지 않습니다. RAW Score를 먼저 계산한 뒤 전체 매장 평균을
-          기준으로 3.0 주변에 정렬하고, 리뷰 최신성·구매 인증·사용자 신뢰 패턴을 명확한 규칙으로
-          반영합니다.
+          기준으로 3.0 주변에 정렬합니다.
         </p>
       </CardContent>
     </Card>
@@ -432,11 +415,11 @@ export function RankingTable({ stores }: RankingTableProps) {
                 Store Ranking
               </p>
               <h2 className="mt-2 text-xl font-semibold tracking-tight text-zinc-950">
-                TT Score 기준 상위 매장
+                TT Index 기준 상위 매장
               </h2>
             </div>
             <p className="hidden text-sm text-zinc-500 sm:block">
-              RAW Score와 TT Score를 항상 함께 표시합니다.
+              RAW Score와 TT Index를 항상 함께 표시합니다.
             </p>
           </div>
           <div className="space-y-3">

@@ -40,7 +40,6 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
     () => calculateReviewScore(tasteScore, serviceScore, environmentScore),
     [tasteScore, serviceScore, environmentScore]
   );
-  const requiresHighScoreReason = reviewScore >= 4.5;
 
   return (
     <Card>
@@ -78,7 +77,7 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="environment_score">공간</Label>
+              <Label htmlFor="environment_score">분위기</Label>
               <Input
                 id="environment_score"
                 name="environment_score"
@@ -96,9 +95,31 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
             계산된 리뷰 점수: <strong>{reviewScore.toFixed(2)}</strong>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="review_text">리뷰 내용</Label>
-            <Textarea id="review_text" name="review_text" placeholder="무엇이 인상적이었나요?" />
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="positive_text">좋았던 점</Label>
+              <Textarea
+                id="positive_text"
+                name="positive_text"
+                placeholder="좋았던 맛, 서비스, 분위기를 적어주세요."
+                rows={5}
+              />
+              <p className="text-xs text-zinc-500">
+                이 항목에는 긍정적이거나 중립적인 내용을 적는 것이 자연스럽습니다.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="negative_text">아쉬웠던 점</Label>
+              <Textarea
+                id="negative_text"
+                name="negative_text"
+                placeholder="아쉬웠던 점이 있다면 적어주세요."
+                rows={5}
+              />
+              <p className="text-xs text-zinc-500">
+                이 항목에는 아쉬운 점이나 개선되면 좋을 점을 적어주세요.
+              </p>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -127,18 +148,6 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
           <div className="space-y-2">
             <Label htmlFor="photo_url">사진 URL</Label>
             <Input id="photo_url" name="photo_url" type="url" placeholder="https://..." />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="high_score_reason">
-              고득점 이유 {requiresHighScoreReason ? "(필수)" : "(선택)"}
-            </Label>
-            <Textarea
-              id="high_score_reason"
-              name="high_score_reason"
-              required={requiresHighScoreReason}
-              placeholder="계산된 리뷰 점수가 4.5 이상이면 필수입니다."
-            />
           </div>
 
           <SubmitButton />
