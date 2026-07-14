@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import type { CookieOptions } from "@supabase/ssr";
 import type { Database } from "@/lib/types";
+import { getSupabaseEnv } from "@/lib/supabase/env";
 
 type PublicSchema = Database["public"];
 
@@ -13,14 +14,13 @@ type CookieToSet = {
 
 export function createClient() {
   const cookieStore = cookies();
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const env = getSupabaseEnv();
 
-  if (!url || !anonKey) {
+  if (!env.ok) {
     throw new Error("Missing Supabase server environment variables.");
   }
 
-  return createServerClient<Database, "public", PublicSchema>(url, anonKey, {
+  return createServerClient<Database, "public", PublicSchema>(env.url, env.key, {
     cookies: {
       getAll() {
         return cookieStore.getAll();

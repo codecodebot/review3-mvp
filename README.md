@@ -33,10 +33,15 @@ npm install
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+# Or, if your Supabase project provides a publishable key:
+# NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 ```
 
-`SUPABASE_SERVICE_ROLE_KEY` is reserved for server-side use only. Do not expose it in browser code.
+For Vercel deployments, register `NEXT_PUBLIC_SUPABASE_URL` and either
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`.
+Do not expose a Supabase service role key in browser code.
+Paste the raw values only. Do not paste Markdown links such as
+`[https://...](https://...)`.
 
 3. Apply the Supabase migration:
 

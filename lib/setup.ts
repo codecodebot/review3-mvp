@@ -1,4 +1,12 @@
-export type SupabaseIssueKind = "connection" | "database";
+export type SupabaseIssueKind = "environment" | "connection" | "auth" | "database";
+
+type SupabaseErrorLike = {
+  message?: unknown;
+  code?: unknown;
+  details?: unknown;
+  hint?: unknown;
+  name?: unknown;
+};
 
 export function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
@@ -16,6 +24,25 @@ export function getErrorMessage(error: unknown) {
   return String(error);
 }
 
+function getErrorField(error: unknown, field: keyof SupabaseErrorLike) {
+  if (typeof error === "object" && error !== null && field in error) {
+    const value = (error as SupabaseErrorLike)[field];
+    return typeof value === "string" ? value : undefined;
+  }
+
+  return undefined;
+}
+
+export function getSupabaseErrorCode(error: unknown) {
+  return getErrorField(error, "code");
+}
+
+export function isSupabaseEnvironmentError(error: unknown) {
+  const message = getErrorMessage(error).toLowerCase();
+
+  return message.includes("missing supabase") && message.includes("environment variables");
+}
+
 export function isSupabaseConnectionError(error: unknown) {
   const message = getErrorMessage(error).toLowerCase();
 
@@ -30,10 +57,28 @@ export function isSupabaseConnectionError(error: unknown) {
   );
 }
 
-export function isDatabaseSetupError(error: unknown) {
+export function isSupabaseAuthError(error: unknown) {
   const message = getErrorMessage(error).toLowerCase();
+  const code = getSupabaseErrorCode(error)?.toLowerCase();
 
   return (
+    code === "401" ||
+    code === "403" ||
+    code === "pgrst301" ||
+    message.includes("invalid api key") ||
+    message.includes("jwt") ||
+    message.includes("permission denied")
+  );
+}
+
+export function isDatabaseSetupError(error: unknown) {
+  const message = getErrorMessage(error).toLowerCase();
+  const code = getSupabaseErrorCode(error)?.toLowerCase();
+
+  return (
+    code === "42p01" ||
+    code === "42883" ||
+    code === "42703" ||
     message.includes("could not find the table") ||
     message.includes("could not find the function") ||
     message.includes("schema cache") ||
@@ -42,9 +87,38 @@ export function isDatabaseSetupError(error: unknown) {
 }
 
 export function isSupabaseSetupOrConnectionError(error: unknown) {
-  return isSupabaseConnectionError(error) || isDatabaseSetupError(error);
+  return (
+    isSupabaseEnvironmentError(error) ||
+    isSupabaseConnectionError(error) ||
+    isSupabaseAuthError(error) ||
+    isDatabaseSetupError(error)
+  );
 }
 
 export function getSupabaseIssueKind(error: unknown): SupabaseIssueKind {
-  return isSupabaseConnectionError(error) ? "connection" : "database";
+  if (isSupabaseEnvironmentError(error)) {
+    return "environment";
+  }
+
+  if (isSupabaseConnectionError(error)) {
+    return "connection";
+  }
+
+  if (isSupabaseAuthError(error)) {
+    return "auth";
+  }
+
+  return "database";
+}
+
+export function logSupabaseError(scope: string, error: unknown) {
+  const safeError = {
+    message: getErrorMessage(error),
+    code: getErrorField(error, "code") ?? null,
+    details: getErrorField(error, "details") ?? null,
+    hint: getErrorField(error, "hint") ?? null,
+    name: getErrorField(error, "name") ?? null
+  };
+
+  console.error(`[supabase:${scope}]`, safeError);
 }

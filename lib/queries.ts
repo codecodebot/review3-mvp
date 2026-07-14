@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { logSupabaseError } from "@/lib/setup";
 import {
   DEFAULT_RECENCY_OPTIONS,
   DEFAULT_SCORE_WEIGHTS,
@@ -41,6 +42,11 @@ function hasFilter(value: string | undefined): value is string {
 
 function roundTwo(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+function throwLoggedSupabaseError(scope: string, message: string, error: unknown): never {
+  logSupabaseError(scope, error);
+  throw new Error(message);
 }
 
 function buildRisingSignal(reviews: RankingReview[]) {
@@ -93,7 +99,11 @@ async function getScoringReviewsForStores(storeIds: string[]) {
         .returns<RankingReviewWithoutSectionWeight[]>();
 
       if (legacyError) {
-        throw new Error(`Unable to load scoring reviews: ${legacyError.message}`);
+        throwLoggedSupabaseError(
+          "scoring-reviews.legacy",
+          `Unable to load scoring reviews: ${legacyError.message}`,
+          legacyError
+        );
       }
 
       return groupReviewsByStore(
@@ -104,7 +114,7 @@ async function getScoringReviewsForStores(storeIds: string[]) {
       );
     }
 
-    throw new Error(`Unable to load scoring reviews: ${error.message}`);
+    throwLoggedSupabaseError("scoring-reviews", `Unable to load scoring reviews: ${error.message}`, error);
   }
 
   return groupReviewsByStore(reviews ?? []);
@@ -140,7 +150,11 @@ async function computeDefaultScoreOverlay(
     .returns<Array<Pick<StoreScoreCache, "store_id" | "review_count">>>();
 
   if (scoreError) {
-    throw new Error(`Unable to load score normalization peers: ${scoreError.message}`);
+    throwLoggedSupabaseError(
+      "score-normalization-peers",
+      `Unable to load score normalization peers: ${scoreError.message}`,
+      scoreError
+    );
   }
 
   const peerStoreIds = Array.from(
@@ -189,7 +203,7 @@ export async function getStores(filters: StoreFilters = {}) {
   const { data: stores, error } = await query.returns<Store[]>();
 
   if (error) {
-    throw new Error(`Unable to load stores: ${error.message}`);
+    throwLoggedSupabaseError("stores", `Unable to load stores: ${error.message}`, error);
   }
 
   if (!stores.length) {
@@ -206,7 +220,7 @@ export async function getStores(filters: StoreFilters = {}) {
     .returns<StoreScoreCache[]>();
 
   if (scoreError) {
-    throw new Error(`Unable to load store scores: ${scoreError.message}`);
+    throwLoggedSupabaseError("store-scores", `Unable to load store scores: ${scoreError.message}`, scoreError);
   }
 
   const reviewsByStoreId = await getScoringReviewsForStores(stores.map((store) => store.id));
@@ -223,7 +237,7 @@ export async function getStore(storeId: string) {
     .maybeSingle<Store>();
 
   if (error) {
-    throw new Error(`Unable to load store: ${error.message}`);
+    throwLoggedSupabaseError("store", `Unable to load store: ${error.message}`, error);
   }
 
   if (!store) {
@@ -237,7 +251,7 @@ export async function getStore(storeId: string) {
     .maybeSingle<StoreScoreCache>();
 
   if (scoreError) {
-    throw new Error(`Unable to load store score: ${scoreError.message}`);
+    throwLoggedSupabaseError("store-score", `Unable to load store score: ${scoreError.message}`, scoreError);
   }
 
   const reviewsByStoreId = await getScoringReviewsForStores([store.id]);
@@ -262,7 +276,7 @@ export async function getReviewsForStore(storeId: string) {
     .returns<ReviewWithProfile[]>();
 
   if (error) {
-    throw new Error(`Unable to load reviews: ${error.message}`);
+    throwLoggedSupabaseError("store-reviews", `Unable to load reviews: ${error.message}`, error);
   }
 
   return data ?? [];
@@ -278,7 +292,7 @@ export async function getRankedStores() {
     .returns<StoreScoreCache[]>();
 
   if (error) {
-    throw new Error(`Unable to load ranking: ${error.message}`);
+    throwLoggedSupabaseError("ranking", `Unable to load ranking: ${error.message}`, error);
   }
 
   if (!scores?.length) {
@@ -294,7 +308,7 @@ export async function getRankedStores() {
     .returns<Store[]>();
 
   if (storeError) {
-    throw new Error(`Unable to load ranked stores: ${storeError.message}`);
+    throwLoggedSupabaseError("ranked-stores", `Unable to load ranked stores: ${storeError.message}`, storeError);
   }
 
   const visibleStores = stores ?? [];
@@ -319,7 +333,11 @@ export async function getRankedStores() {
       .returns<RankingReviewWithoutSectionWeight[]>();
 
     if (legacyReviewError) {
-      throw new Error(`Unable to load ranking reviews: ${legacyReviewError.message}`);
+      throwLoggedSupabaseError(
+        "ranking-reviews.legacy",
+        `Unable to load ranking reviews: ${legacyReviewError.message}`,
+        legacyReviewError
+      );
     }
 
     rankingReviews = (legacyReviews ?? []).map((review) => ({
@@ -327,7 +345,7 @@ export async function getRankedStores() {
       text_completeness_weight: 1
     }));
   } else if (reviewError) {
-    throw new Error(`Unable to load ranking reviews: ${reviewError.message}`);
+    throwLoggedSupabaseError("ranking-reviews", `Unable to load ranking reviews: ${reviewError.message}`, reviewError);
   }
 
   const reviewsByStoreId = groupReviewsByStore(rankingReviews);
@@ -364,7 +382,7 @@ export async function getReports() {
     .returns<ReportWithReporter[]>();
 
   if (error) {
-    throw new Error(`Unable to load reports: ${error.message}`);
+    throwLoggedSupabaseError("reports", `Unable to load reports: ${error.message}`, error);
   }
 
   return data ?? [];
@@ -382,7 +400,7 @@ export async function getRecentReviewsForAdmin() {
     .returns<AdminReview[]>();
 
   if (error) {
-    throw new Error(`Unable to load admin reviews: ${error.message}`);
+    throwLoggedSupabaseError("admin-reviews", `Unable to load admin reviews: ${error.message}`, error);
   }
 
   return data ?? [];
