@@ -18,10 +18,29 @@ function cleanEnvValue(value: string | undefined) {
   return value?.trim();
 }
 
+function normalizeSupabaseUrl(value: string | undefined) {
+  const cleaned = cleanEnvValue(value);
+
+  if (!cleaned) {
+    return undefined;
+  }
+
+  const markdownMatch = cleaned.match(/^\[(https?:\/\/[^\]]+)\]\((https?:\/\/[^)]+)\)$/);
+  const candidate = markdownMatch?.[2] ?? cleaned;
+  const hostedProjectUrl = candidate.match(/https?:\/\/[a-z0-9-]+\.supabase\.co\b/i);
+
+  return hostedProjectUrl?.[0] ?? candidate;
+}
+
 function isValidSupabaseUrl(value: string) {
   try {
     const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:";
+    const isHostedSupabase = url.protocol === "https:" && url.hostname.endsWith(".supabase.co");
+    const isLocalSupabase =
+      (url.protocol === "http:" || url.protocol === "https:") &&
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+
+    return isHostedSupabase || isLocalSupabase;
   } catch {
     return false;
   }
@@ -32,7 +51,7 @@ function isMarkdownLink(value: string) {
 }
 
 export function getSupabaseEnv(): SupabaseEnvStatus {
-  const url = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const url = normalizeSupabaseUrl(process.env.NEXT_PUBLIC_SUPABASE_URL);
   const anonKey = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   const publishableKey = cleanEnvValue(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
   const key = anonKey || publishableKey;
