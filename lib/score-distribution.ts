@@ -18,15 +18,7 @@ export type ScoreDistributionSummary = {
 
 type BucketDefinition = Omit<ScoreDistributionBucket, "count" | "percentage">;
 
-const RAW_BUCKETS: BucketDefinition[] = [
-  { range: "4.5 이상", label: "높은 RAW 구간", min: 4.5, max: null },
-  { range: "4.0 - 4.5", label: "상위 RAW 구간", min: 4.0, max: 4.5 },
-  { range: "3.5 - 4.0", label: "중간 RAW 구간", min: 3.5, max: 4.0 },
-  { range: "3.0 - 3.5", label: "낮은 RAW 구간", min: 3.0, max: 3.5 },
-  { range: "3.0 미만", label: "추가 확인 구간", min: null, max: 3.0 }
-];
-
-const TT_BUCKETS: BucketDefinition[] = [
+const SCORE_BUCKETS: BucketDefinition[] = [
   { range: "4.0 이상", label: "매우 강한 긍정 신호", min: 4.0, max: null },
   { range: "3.6 - 4.0", label: "강한 긍정 신호", min: 3.6, max: 4.0 },
   { range: "3.3 - 3.6", label: "평균 이상", min: 3.3, max: 3.6 },
@@ -77,8 +69,8 @@ export function calculateScoreDistributionSummary(input: {
   const storeCount = Math.min(rawScores.length, ttScores.length);
 
   return {
-    rawDistribution: calculateBuckets(rawScores, RAW_BUCKETS),
-    ttDistribution: calculateBuckets(ttScores, TT_BUCKETS),
+    rawDistribution: calculateBuckets(rawScores, SCORE_BUCKETS),
+    ttDistribution: calculateBuckets(ttScores, SCORE_BUCKETS),
     rawAverage: average(rawScores),
     ttAverage: average(ttScores),
     storeCount,

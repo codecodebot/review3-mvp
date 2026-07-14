@@ -89,8 +89,8 @@ export function ScoreDistributionChart({ summary }: ScoreDistributionChartProps)
             RAW Score와 TT Index 분포 비교
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-zinc-600">
-            RAW Score는 기존 별점처럼 높은 구간에 몰릴 수 있습니다. TT Index는 같은 매장 집합을
-            시장 평균 3.0 기준으로 다시 정렬해 매장 간 차이를 더 읽기 쉽게 보여줍니다.
+            두 분포는 같은 점수 구간으로 비교합니다. RAW Score가 어느 구간에 몰리는지, TT Index가
+            평균선 기준으로 어떻게 재정렬되는지 같은 기준에서 확인할 수 있습니다.
           </p>
         </div>
         <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-800">
@@ -101,7 +101,7 @@ export function ScoreDistributionChart({ summary }: ScoreDistributionChartProps)
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <DistributionPanel
           title="RAW Score 분포"
-          description="신뢰 가중 원점수 기준"
+          description="원래 리뷰 점수의 신뢰 가중 평균 기준"
           buckets={summary.rawDistribution}
           averageLabel="RAW 평균"
           averageValue={summary.rawAverage}
@@ -117,7 +117,8 @@ export function ScoreDistributionChart({ summary }: ScoreDistributionChartProps)
       </div>
 
       <p className="mt-4 text-xs leading-5 text-zinc-500">
-        분포는 현재 데이터 기준으로 계산되며, 리뷰 수와 데이터 업데이트에 따라 달라질 수 있습니다.
+        RAW Score와 TT Index는 동일한 구간으로 표시되며, 분포는 현재 데이터와 리뷰 업데이트에 따라
+        달라질 수 있습니다.
       </p>
     </section>
   );
