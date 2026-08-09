@@ -110,7 +110,26 @@ delete from auth.users where email like 'demo.user.%@example.test';
 select public.refresh_all_store_scores();
 ```
 
-6. Start local development:
+6. Optional: import Guro-gu public restaurant/store data:
+
+Download the public Guro-gu restaurant permit CSV from the Public Data Portal or Seoul Open Data,
+save it locally under `data/import/`, then generate a reviewed SQL file:
+
+```bash
+npm run import:guro -- --input data/import/guro-restaurants.csv
+```
+
+If the CSV is EUC-KR/CP949 encoded:
+
+```bash
+npm run import:guro -- --input data/import/guro-restaurants.csv --encoding euc-kr
+```
+
+For a smaller MVP import, add `--limit 1000`. The generated SQL is written to
+`supabase/generated/guro-stores.upsert.sql`, which is ignored by Git. Review the SQL, paste it
+into Supabase Dashboard > SQL Editor, and run it manually. See `data/import/README.md` for details.
+
+7. Start local development:
 
 ```bash
 npm run dev

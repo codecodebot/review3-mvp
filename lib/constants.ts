@@ -21,6 +21,7 @@ export const STORE_REGIONS = [
   "Seoul Mapo",
   "Seoul Gangnam",
   "Seoul Jongno",
+  "Seoul Guro",
   "Busan Haeundae",
   "Incheon Songdo"
 ] as const;
@@ -46,6 +47,7 @@ export const STORE_REGION_LABELS: Record<string, string> = {
   "Seoul Mapo": "서울 마포",
   "Seoul Gangnam": "서울 강남",
   "Seoul Jongno": "서울 종로",
+  "Seoul Guro": "서울 구로",
   "Busan Haeundae": "부산 해운대",
   "Incheon Songdo": "인천 송도",
   "Seoul Seongsu": "서울 성수",
