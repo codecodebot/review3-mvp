@@ -24,7 +24,7 @@ type PixelPoint = {
 
 const TILE_SIZE = 256;
 const MIN_ZOOM = 7;
-const MAX_ZOOM = 16;
+const MAX_ZOOM = 18;
 const DEFAULT_CENTER = { lat: 37.4979, lng: 126.8844 };
 const DEFAULT_SIZE = { width: 960, height: 540 };
 
@@ -114,7 +114,7 @@ function tileUrl(x: number, y: number, zoom: number) {
   const tilesPerAxis = 2 ** zoom;
   const wrappedX = ((x % tilesPerAxis) + tilesPerAxis) % tilesPerAxis;
 
-  return `https://tile.openstreetmap.org/${zoom}/${wrappedX}/${y}.png`;
+  return `https://a.basemaps.cartocdn.com/rastertiles/voyager/${zoom}/${wrappedX}/${y}@2x.png`;
 }
 
 export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
@@ -257,7 +257,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
         <div>
           <div className="text-sm font-semibold text-zinc-950">전체 지도</div>
           <p className="mt-1 text-xs text-zinc-500">
-            현재 필터의 좌표 등록 매장 {stores.length.toLocaleString("ko-KR")}개를 표시합니다.
+            현재 필터의 좌표 등록 매장 {stores.length.toLocaleString("ko-KR")}개를 고해상도 지도에 표시합니다.
             드래그로 이동하고 휠로 확대/축소할 수 있습니다.
           </p>
         </div>
@@ -355,7 +355,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
           </div>
         ) : null}
         <div className="absolute bottom-2 right-3 rounded-full bg-white/90 px-2 py-1 text-[10px] font-medium text-zinc-500">
-          © OpenStreetMap contributors
+          © OpenStreetMap contributors · © CARTO
         </div>
       </div>
     </section>

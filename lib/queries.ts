@@ -24,6 +24,7 @@ import type {
 export type StoreFilters = {
   region?: string;
   category?: string;
+  query?: string;
   limit?: number;
 };
 
@@ -44,6 +45,11 @@ const SUPABASE_PAGE_SIZE = 1000;
 
 function hasFilter(value: string | undefined): value is string {
   return Boolean(value && value !== "all");
+}
+
+function cleanSearchQuery(value: string | undefined) {
+  const cleaned = value?.trim().replace(/[,%_()]/g, " ").replace(/\s+/g, " ");
+  return cleaned || null;
 }
 
 function roundTwo(value: number) {
@@ -283,6 +289,11 @@ export async function getStores(filters: StoreFilters = {}) {
     query = query.eq("category", filters.category);
   }
 
+  const searchQuery = cleanSearchQuery(filters.query);
+  if (searchQuery) {
+    query = query.or(`name.ilike.%${searchQuery}%,address.ilike.%${searchQuery}%`);
+  }
+
   if (filters.limit) {
     query = query.limit(filters.limit);
   }
@@ -329,6 +340,11 @@ export async function getStoreMapPoints(filters: StoreFilters = {}) {
 
     if (hasFilter(filters.category)) {
       query = query.eq("category", filters.category);
+    }
+
+    const searchQuery = cleanSearchQuery(filters.query);
+    if (searchQuery) {
+      query = query.or(`name.ilike.%${searchQuery}%,address.ilike.%${searchQuery}%`);
     }
 
     const { data, error } = await query.returns<
