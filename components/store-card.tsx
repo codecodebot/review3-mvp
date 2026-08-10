@@ -5,8 +5,8 @@ import { RisingStoreBadge } from "@/components/rising-store-badge";
 import { ScoreDelta } from "@/components/score-delta";
 import { TrustBadge } from "@/components/trust-badge";
 import { VerificationBadge } from "@/components/verification-badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
 import type { StoreWithScore } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -15,9 +15,14 @@ type StoreCardProps = {
   store: StoreWithScore;
 };
 
+function buildMapUrl(lat: number, lng: number) {
+  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
+}
+
 export function StoreCard({ store }: StoreCardProps) {
   const rawScore = store.score?.raw_score ?? 0;
   const adjustedScore = store.score?.adjusted_score ?? 0;
+  const hasCoordinates = typeof store.lat === "number" && typeof store.lng === "number";
 
   return (
     <Card className="transition hover:border-zinc-300 hover:shadow-[0_16px_40px_rgba(15,23,42,0.07)]">
@@ -53,22 +58,40 @@ export function StoreCard({ store }: StoreCardProps) {
         </div>
         <div className="grid gap-3 text-sm sm:grid-cols-2">
           <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">Reviews</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">리뷰 수</div>
             <div className="mt-1 font-semibold tabular-nums text-zinc-950">
               {store.score?.review_count ?? 0}
             </div>
           </div>
           <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">Repeat</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+              재방문
+            </div>
             <RevisitRateDetail score={store.score} />
           </div>
         </div>
-        <Link
-          href={`/stores/${store.id}`}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
-        >
-          자세히 보기
-        </Link>
+        <div className="grid gap-2 sm:grid-cols-2">
+          <Link
+            href={`/stores/${store.id}`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
+          >
+            상세 보기
+          </Link>
+          {hasCoordinates ? (
+            <a
+              href={buildMapUrl(store.lat as number, store.lng as number)}
+              target="_blank"
+              rel="noreferrer"
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
+            >
+              지도 보기
+            </a>
+          ) : (
+            <span className="inline-flex h-9 items-center justify-center rounded-full border border-dashed border-zinc-200 text-xs font-semibold text-zinc-400">
+              좌표 없음
+            </span>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

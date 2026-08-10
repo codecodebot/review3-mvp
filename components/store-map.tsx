@@ -4,25 +4,33 @@ type StoreMapProps = {
   store: Pick<Store, "name" | "address" | "lat" | "lng">;
 };
 
+function buildAddressSearchUrl(address: string) {
+  return `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`;
+}
+
+function buildMapUrl(lat: number, lng: number) {
+  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
+}
+
 export function StoreMap({ store }: StoreMapProps) {
   const lat = store.lat;
   const lng = store.lng;
 
   if (typeof lat !== "number" || typeof lng !== "number") {
-    const searchHref = store.address
-      ? `https://www.openstreetmap.org/search?query=${encodeURIComponent(store.address)}`
-      : null;
+    const searchHref = store.address ? buildAddressSearchUrl(store.address) : null;
 
     return (
-      <div className="rounded-3xl border border-zinc-200 bg-white p-5">
+      <section className="rounded-3xl border border-zinc-200 bg-white p-5">
         <div className="text-sm font-semibold text-zinc-950">위치</div>
         <div className="mt-4 flex min-h-56 items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-6 text-center">
           <div>
-            <p className="text-sm font-medium text-zinc-700">지도 좌표가 아직 없습니다.</p>
+            <p className="text-sm font-medium text-zinc-700">지도 좌표가 아직 등록되지 않았습니다.</p>
             {store.address ? (
               <p className="mt-2 text-sm leading-6 text-zinc-500">{store.address}</p>
             ) : (
-              <p className="mt-2 text-sm leading-6 text-zinc-500">주소 또는 좌표를 등록하면 위치가 표시됩니다.</p>
+              <p className="mt-2 text-sm leading-6 text-zinc-500">
+                주소 또는 좌표를 등록하면 위치가 표시됩니다.
+              </p>
             )}
             {searchHref ? (
               <a
@@ -31,12 +39,12 @@ export function StoreMap({ store }: StoreMapProps) {
                 rel="noreferrer"
                 className="mt-4 inline-flex rounded-full border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
               >
-                지도에서 주소 검색
+                주소로 지도 검색
               </a>
             ) : null}
           </div>
         </div>
-      </div>
+      </section>
     );
   }
 
@@ -45,10 +53,10 @@ export function StoreMap({ store }: StoreMapProps) {
   const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
     bbox
   )}&layer=mapnik&marker=${encodeURIComponent(`${lat},${lng}`)}`;
-  const mapUrl = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
+  const mapUrl = buildMapUrl(lat, lng);
 
   return (
-    <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-white">
+    <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white">
       <div className="flex items-center justify-between gap-4 border-b border-zinc-200 px-5 py-4">
         <div>
           <div className="text-sm font-semibold text-zinc-950">위치</div>
@@ -75,6 +83,6 @@ export function StoreMap({ store }: StoreMapProps) {
       {store.address ? (
         <div className="border-t border-zinc-200 px-5 py-3 text-sm text-zinc-600">{store.address}</div>
       ) : null}
-    </div>
+    </section>
   );
 }
