@@ -3,6 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
+import { LocateFixed, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent, WheelEvent } from "react";
 import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
@@ -265,23 +266,29 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
           <button
             type="button"
             onClick={() => updateZoom(zoomOffset - 1)}
-            className="h-9 rounded-full border border-zinc-300 px-3 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
+            aria-label="지도 축소"
+            title="축소"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-950"
           >
-            축소
+            <ZoomOut className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
           </button>
           <button
             type="button"
             onClick={resetView}
-            className="h-9 rounded-full border border-zinc-300 px-3 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
+            aria-label="지도 전체 보기"
+            title="전체 보기"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-950"
           >
-            전체 보기
+            <LocateFixed className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
           </button>
           <button
             type="button"
             onClick={() => updateZoom(zoomOffset + 1)}
-            className="h-9 rounded-full border border-zinc-300 px-3 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
+            aria-label="지도 확대"
+            title="확대"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-950"
           >
-            확대
+            <ZoomIn className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
           </button>
         </div>
       </div>
@@ -323,13 +330,27 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
                 title={store.name}
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={() => setSelectedStoreId(store.id)}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border transition ${
+                className={`group absolute -translate-x-1/2 -translate-y-full outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
                   isSelected
-                    ? "z-20 h-4 w-4 border-zinc-950 bg-amber-400 shadow-[0_0_0_4px_rgba(251,191,36,0.25)]"
-                    : "z-10 h-2.5 w-2.5 border-white bg-zinc-900/75 hover:h-3.5 hover:w-3.5 hover:bg-amber-500"
+                    ? "z-20 h-9 w-7 text-zinc-950 drop-shadow-[0_10px_16px_rgba(15,23,42,0.22)]"
+                    : "z-10 h-6 w-5 text-zinc-900/80 drop-shadow-[0_4px_8px_rgba(15,23,42,0.16)] hover:h-7 hover:w-6 hover:text-zinc-950"
                 }`}
                 style={{ left, top }}
-              />
+              >
+                <svg viewBox="0 0 28 36" className="h-full w-full" aria-hidden="true">
+                  <path
+                    d="M14 1.6c6.5 0 11.7 5.2 11.7 11.5 0 8.4-9.2 18.3-11.1 20.2a.9.9 0 0 1-1.2 0C11.5 31.4 2.3 21.5 2.3 13.1 2.3 6.8 7.5 1.6 14 1.6Z"
+                    className={isSelected ? "fill-amber-400 stroke-zinc-950" : "fill-white/95 stroke-zinc-900/80"}
+                    strokeWidth="1.6"
+                  />
+                  <circle
+                    cx="14"
+                    cy="13"
+                    r={isSelected ? "4.2" : "3.6"}
+                    className={isSelected ? "fill-zinc-950" : "fill-zinc-900/80 group-hover:fill-amber-500"}
+                  />
+                </svg>
+              </button>
             );
           })}
         </div>
