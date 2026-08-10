@@ -14,6 +14,7 @@ import type {
   ReviewWithProfile,
   RankingReview,
   Store,
+  StoreMapPoint,
   StoreMenu,
   StoreScoreCache,
   StoreWithScore,
@@ -39,6 +40,7 @@ const LEGACY_RANKING_REVIEW_SELECT =
   "store_id,taste_score,service_score,environment_score,created_at,purchase_verified";
 
 const SUPABASE_IN_BATCH_SIZE = 200;
+const SUPABASE_PAGE_SIZE = 1000;
 
 function hasFilter(value: string | undefined): value is string {
   return Boolean(value && value !== "all");
@@ -61,6 +63,12 @@ function chunkValues<T>(values: T[], size = SUPABASE_IN_BATCH_SIZE) {
 function throwLoggedSupabaseError(scope: string, message: string, error: unknown): never {
   logSupabaseError(scope, error);
   throw new Error(message);
+}
+
+function hasCoordinates(
+  store: Pick<Store, "id" | "name" | "category" | "region" | "address" | "lat" | "lng">
+): store is StoreMapPoint {
+  return typeof store.lat === "number" && typeof store.lng === "number";
 }
 
 function buildRisingSignal(reviews: RankingReview[]) {
@@ -297,6 +305,51 @@ export async function getStores(filters: StoreFilters = {}) {
   const reviewsByStoreId = await getScoringReviewsForStores(storeIdsWithReviews);
 
   return mergeStoresWithScores(stores, scores, reviewsByStoreId);
+}
+
+export async function getStoreMapPoints(filters: StoreFilters = {}) {
+  const supabase = createClient();
+  const stores: StoreMapPoint[] = [];
+  let page = 0;
+
+  while (true) {
+    const from = page * SUPABASE_PAGE_SIZE;
+    const to = from + SUPABASE_PAGE_SIZE - 1;
+    let query = supabase
+      .from("stores")
+      .select("id,name,category,region,address,lat,lng")
+      .not("lat", "is", null)
+      .not("lng", "is", null)
+      .order("name", { ascending: true })
+      .range(from, to);
+
+    if (hasFilter(filters.region)) {
+      query = query.eq("region", filters.region);
+    }
+
+    if (hasFilter(filters.category)) {
+      query = query.eq("category", filters.category);
+    }
+
+    const { data, error } = await query.returns<
+      Array<Pick<Store, "id" | "name" | "category" | "region" | "address" | "lat" | "lng">>
+    >();
+
+    if (error) {
+      throwLoggedSupabaseError("store-map-points", `Unable to load store map points: ${error.message}`, error);
+    }
+
+    const pageStores = (data ?? []).filter(hasCoordinates);
+    stores.push(...pageStores);
+
+    if (!data || data.length < SUPABASE_PAGE_SIZE) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return stores;
 }
 
 export async function getStore(storeId: string) {

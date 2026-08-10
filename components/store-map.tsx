@@ -4,23 +4,13 @@ type StoreMapProps = {
   store: Pick<Store, "name" | "address" | "lat" | "lng">;
 };
 
-function buildAddressSearchUrl(address: string) {
-  return `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`;
-}
-
-function buildMapUrl(lat: number, lng: number) {
-  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
-}
-
 export function StoreMap({ store }: StoreMapProps) {
   const lat = store.lat;
   const lng = store.lng;
 
   if (typeof lat !== "number" || typeof lng !== "number") {
-    const searchHref = store.address ? buildAddressSearchUrl(store.address) : null;
-
     return (
-      <section className="rounded-3xl border border-zinc-200 bg-white p-5">
+      <section id="location-map" className="rounded-3xl border border-zinc-200 bg-white p-5">
         <div className="text-sm font-semibold text-zinc-950">위치</div>
         <div className="mt-4 flex min-h-56 items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-6 text-center">
           <div>
@@ -32,16 +22,6 @@ export function StoreMap({ store }: StoreMapProps) {
                 주소 또는 좌표를 등록하면 위치가 표시됩니다.
               </p>
             )}
-            {searchHref ? (
-              <a
-                href={searchHref}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-4 inline-flex rounded-full border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
-              >
-                주소로 지도 검색
-              </a>
-            ) : null}
           </div>
         </div>
       </section>
@@ -53,10 +33,9 @@ export function StoreMap({ store }: StoreMapProps) {
   const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
     bbox
   )}&layer=mapnik&marker=${encodeURIComponent(`${lat},${lng}`)}`;
-  const mapUrl = buildMapUrl(lat, lng);
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white">
+    <section id="location-map" className="overflow-hidden rounded-3xl border border-zinc-200 bg-white">
       <div className="flex items-center justify-between gap-4 border-b border-zinc-200 px-5 py-4">
         <div>
           <div className="text-sm font-semibold text-zinc-950">위치</div>
@@ -64,14 +43,9 @@ export function StoreMap({ store }: StoreMapProps) {
             {lat.toFixed(5)}, {lng.toFixed(5)}
           </p>
         </div>
-        <a
-          href={mapUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="rounded-full border border-zinc-300 px-3 py-2 text-xs font-semibold text-zinc-800 hover:bg-zinc-50"
-        >
-          큰 지도
-        </a>
+        <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-600">
+          임베디드 지도
+        </span>
       </div>
       <iframe
         title={`${store.name} 위치 지도`}

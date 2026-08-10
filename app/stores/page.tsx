@@ -1,6 +1,7 @@
-import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import Link from "next/link";
+import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import { StoreCard } from "@/components/store-card";
+import { StoreMapExplorer } from "@/components/store-map-explorer";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
@@ -10,13 +11,13 @@ import {
   formatCategoryLabel,
   formatRegionLabel
 } from "@/lib/constants";
-import { getStores } from "@/lib/queries";
+import { getStoreMapPoints, getStores } from "@/lib/queries";
 import {
   getSupabaseIssueKind,
   isSupabaseSetupOrConnectionError,
   type SupabaseIssueKind
 } from "@/lib/setup";
-import type { StoreWithScore } from "@/lib/types";
+import type { StoreMapPoint, StoreWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -31,14 +32,21 @@ type StoresPageProps = {
 
 export default async function StoresPage({ searchParams }: StoresPageProps) {
   let stores: StoreWithScore[] = [];
+  let mapStores: StoreMapPoint[] = [];
   let supabaseIssue: SupabaseIssueKind | null = null;
 
   try {
-    stores = await getStores({
-      region: searchParams?.region,
-      category: searchParams?.category,
-      limit: STORE_LIST_LIMIT
-    });
+    [stores, mapStores] = await Promise.all([
+      getStores({
+        region: searchParams?.region,
+        category: searchParams?.category,
+        limit: STORE_LIST_LIMIT
+      }),
+      getStoreMapPoints({
+        region: searchParams?.region,
+        category: searchParams?.category
+      })
+    ]);
   } catch (error) {
     if (!isSupabaseSetupOrConnectionError(error)) {
       throw error;
@@ -59,7 +67,7 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
               매장별 신뢰 점수 현황
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500">
-              지역과 카테고리별로 RAW Score, TT Index, 인증 상태, 최근 상승 신호를 비교합니다.
+              지역과 카테고리별로 RAW Score, TT Score, 인증 상태, 최근 상승 신호를 함께 비교합니다.
             </p>
           </div>
           <div className="space-y-3">
@@ -99,17 +107,26 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
 
       {supabaseIssue ? (
         <DatabaseSetupNotice kind={supabaseIssue} />
-      ) : stores.length ? (
+      ) : stores.length || mapStores.length ? (
         <>
+          <div className="mb-6">
+            <StoreMapExplorer stores={mapStores} />
+          </div>
           <div className="mb-4 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
-            성능을 위해 현재 조건에서 최대 {STORE_LIST_LIMIT}개 매장을 먼저 표시합니다. 지역과 카테고리를
-            좁히면 더 빠르게 탐색할 수 있습니다.
+            지도에는 좌표가 있는 매장을 모두 표시하고, 아래 목록은 성능을 위해 최대 {STORE_LIST_LIMIT}개만
+            먼저 보여줍니다.
           </div>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {stores.map((store) => (
-              <StoreCard key={store.id} store={store} />
-            ))}
-          </div>
+          {stores.length ? (
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {stores.map((store) => (
+                <StoreCard key={store.id} store={store} />
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500">
+              현재 조건에서 목록에 표시할 매장이 없습니다.
+            </div>
+          )}
         </>
       ) : (
         <div className="rounded-lg border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500">

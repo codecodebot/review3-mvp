@@ -401,6 +401,11 @@ export type StoreScoreCache = Database["public"]["Tables"]["store_score_cache"][
 export type ScoringSettings = Database["public"]["Tables"]["scoring_settings"]["Row"];
 export type Report = Database["public"]["Tables"]["reports"]["Row"];
 
+export type StoreMapPoint = Pick<Store, "id" | "name" | "category" | "region" | "address"> & {
+  lat: number;
+  lng: number;
+};
+
 export type StoreWithScore = Store & {
   score: StoreScoreCache | null;
   rising?: StoreRisingSignal | null;

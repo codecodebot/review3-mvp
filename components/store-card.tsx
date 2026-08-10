@@ -15,10 +15,6 @@ type StoreCardProps = {
   store: StoreWithScore;
 };
 
-function buildMapUrl(lat: number, lng: number) {
-  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=17/${lat}/${lng}`;
-}
-
 export function StoreCard({ store }: StoreCardProps) {
   const rawScore = store.score?.raw_score ?? 0;
   const adjustedScore = store.score?.adjusted_score ?? 0;
@@ -47,6 +43,11 @@ export function StoreCard({ store }: StoreCardProps) {
         <div className="flex flex-wrap gap-2">
           <VerificationBadge status={store.verification_status} />
           <TrustBadge level={store.score?.trust_level} />
+          {hasCoordinates ? (
+            <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+              지도 표시
+            </span>
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -77,20 +78,12 @@ export function StoreCard({ store }: StoreCardProps) {
           >
             상세 보기
           </Link>
-          {hasCoordinates ? (
-            <a
-              href={buildMapUrl(store.lat as number, store.lng as number)}
-              target="_blank"
-              rel="noreferrer"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
-            >
-              지도 보기
-            </a>
-          ) : (
-            <span className="inline-flex h-9 items-center justify-center rounded-full border border-dashed border-zinc-200 text-xs font-semibold text-zinc-400">
-              좌표 없음
-            </span>
-          )}
+          <Link
+            href={`/stores/${store.id}#location-map`}
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
+          >
+            지도 보기
+          </Link>
         </div>
       </CardContent>
     </Card>
