@@ -23,6 +23,7 @@ import type {
 export type StoreFilters = {
   region?: string;
   category?: string;
+  limit?: number;
 };
 
 export type AdminReview = ReviewWithProfile & {
@@ -37,12 +38,24 @@ const RANKING_REVIEW_SELECT =
 const LEGACY_RANKING_REVIEW_SELECT =
   "store_id,taste_score,service_score,environment_score,created_at,purchase_verified";
 
+const SUPABASE_IN_BATCH_SIZE = 200;
+
 function hasFilter(value: string | undefined): value is string {
   return Boolean(value && value !== "all");
 }
 
 function roundTwo(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+function chunkValues<T>(values: T[], size = SUPABASE_IN_BATCH_SIZE) {
+  const chunks: T[][] = [];
+
+  for (let index = 0; index < values.length; index += size) {
+    chunks.push(values.slice(index, index + size));
+  }
+
+  return chunks;
 }
 
 function throwLoggedSupabaseError(scope: string, message: string, error: unknown): never {
@@ -81,44 +94,102 @@ async function getScoringReviewsForStores(storeIds: string[]) {
   }
 
   const supabase = createClient();
-  const { data: reviews, error } = await supabase
-    .from("reviews")
-    .select(RANKING_REVIEW_SELECT)
-    .in("store_id", storeIds)
-    .eq("is_hidden", false)
-    .eq("excluded_from_score", false)
-    .returns<RankingReview[]>();
+  const allReviews: RankingReview[] = [];
 
-  if (error) {
-    if (/text_completeness_weight|positive_text|negative_text/i.test(error.message)) {
-      const { data: legacyReviews, error: legacyError } = await supabase
-        .from("reviews")
-        .select(LEGACY_RANKING_REVIEW_SELECT)
-        .in("store_id", storeIds)
-        .eq("is_hidden", false)
-        .eq("excluded_from_score", false)
-        .returns<RankingReviewWithoutSectionWeight[]>();
+  for (const storeIdBatch of chunkValues(storeIds)) {
+    const { data: reviews, error } = await supabase
+      .from("reviews")
+      .select(RANKING_REVIEW_SELECT)
+      .in("store_id", storeIdBatch)
+      .eq("is_hidden", false)
+      .eq("excluded_from_score", false)
+      .returns<RankingReview[]>();
 
-      if (legacyError) {
-        throwLoggedSupabaseError(
-          "scoring-reviews.legacy",
-          `Unable to load scoring reviews: ${legacyError.message}`,
-          legacyError
+    if (error) {
+      if (/text_completeness_weight|positive_text|negative_text/i.test(error.message)) {
+        const { data: legacyReviews, error: legacyError } = await supabase
+          .from("reviews")
+          .select(LEGACY_RANKING_REVIEW_SELECT)
+          .in("store_id", storeIdBatch)
+          .eq("is_hidden", false)
+          .eq("excluded_from_score", false)
+          .returns<RankingReviewWithoutSectionWeight[]>();
+
+        if (legacyError) {
+          throwLoggedSupabaseError(
+            "scoring-reviews.legacy",
+            `Unable to load scoring reviews: ${legacyError.message}`,
+            legacyError
+          );
+        }
+
+        allReviews.push(
+          ...(legacyReviews ?? []).map((review) => ({
+            ...review,
+            text_completeness_weight: 1
+          }))
         );
+        continue;
       }
 
-      return groupReviewsByStore(
-        (legacyReviews ?? []).map((review) => ({
-          ...review,
-          text_completeness_weight: 1
-        }))
-      );
+      throwLoggedSupabaseError("scoring-reviews", `Unable to load scoring reviews: ${error.message}`, error);
     }
 
-    throwLoggedSupabaseError("scoring-reviews", `Unable to load scoring reviews: ${error.message}`, error);
+    allReviews.push(...(reviews ?? []));
   }
 
-  return groupReviewsByStore(reviews ?? []);
+  return groupReviewsByStore(allReviews);
+}
+
+async function getScoreCacheForStores(storeIds: string[]) {
+  if (!storeIds.length) {
+    return [];
+  }
+
+  const supabase = createClient();
+  const scores: StoreScoreCache[] = [];
+
+  for (const storeIdBatch of chunkValues(storeIds)) {
+    const { data, error } = await supabase
+      .from("store_score_cache")
+      .select("*")
+      .in("store_id", storeIdBatch)
+      .returns<StoreScoreCache[]>();
+
+    if (error) {
+      throwLoggedSupabaseError("store-scores", `Unable to load store scores: ${error.message}`, error);
+    }
+
+    scores.push(...(data ?? []));
+  }
+
+  return scores;
+}
+
+async function getVisibleStoresByIds(storeIds: string[]) {
+  if (!storeIds.length) {
+    return [];
+  }
+
+  const supabase = createClient();
+  const stores: Store[] = [];
+
+  for (const storeIdBatch of chunkValues(storeIds)) {
+    const { data, error } = await supabase
+      .from("stores")
+      .select("*")
+      .in("id", storeIdBatch)
+      .eq("ranking_limited", false)
+      .returns<Store[]>();
+
+    if (error) {
+      throwLoggedSupabaseError("ranked-stores", `Unable to load ranked stores: ${error.message}`, error);
+    }
+
+    stores.push(...(data ?? []));
+  }
+
+  return stores;
 }
 
 function mergeStoresWithScores(
@@ -191,7 +262,10 @@ async function computeDefaultScoreOverlay(
 
 export async function getStores(filters: StoreFilters = {}) {
   const supabase = createClient();
-  let query = supabase.from("stores").select("*").order("name", { ascending: true });
+  let query = supabase
+    .from("stores")
+    .select("*")
+    .order("name", { ascending: true });
 
   if (hasFilter(filters.region)) {
     query = query.eq("region", filters.region);
@@ -199,6 +273,10 @@ export async function getStores(filters: StoreFilters = {}) {
 
   if (hasFilter(filters.category)) {
     query = query.eq("category", filters.category);
+  }
+
+  if (filters.limit) {
+    query = query.limit(filters.limit);
   }
 
   const { data: stores, error } = await query.returns<Store[]>();
@@ -211,22 +289,14 @@ export async function getStores(filters: StoreFilters = {}) {
     return [];
   }
 
-  const { data: scores, error: scoreError } = await supabase
-    .from("store_score_cache")
-    .select("*")
-    .in(
-      "store_id",
-      stores.map((store) => store.id)
-    )
-    .returns<StoreScoreCache[]>();
+  const storeIds = stores.map((store) => store.id);
+  const scores = await getScoreCacheForStores(storeIds);
+  const storeIdsWithReviews = scores
+    .filter((score) => score.review_count > 0)
+    .map((score) => score.store_id);
+  const reviewsByStoreId = await getScoringReviewsForStores(storeIdsWithReviews);
 
-  if (scoreError) {
-    throwLoggedSupabaseError("store-scores", `Unable to load store scores: ${scoreError.message}`, scoreError);
-  }
-
-  const reviewsByStoreId = await getScoringReviewsForStores(stores.map((store) => store.id));
-
-  return mergeStoresWithScores(stores, scores ?? [], reviewsByStoreId);
+  return mergeStoresWithScores(stores, scores, reviewsByStoreId);
 }
 
 export async function getStore(storeId: string) {
@@ -322,55 +392,9 @@ export async function getRankedStores() {
   }
 
   const ids = scores.map((score) => score.store_id);
-  const { data: stores, error: storeError } = await supabase
-    .from("stores")
-    .select("*")
-    .in("id", ids)
-    .eq("ranking_limited", false)
-    .returns<Store[]>();
-
-  if (storeError) {
-    throwLoggedSupabaseError("ranked-stores", `Unable to load ranked stores: ${storeError.message}`, storeError);
-  }
-
-  const visibleStores = stores ?? [];
+  const visibleStores = await getVisibleStoresByIds(ids);
   const visibleStoreIds = visibleStores.map((store) => store.id);
-  const { data: reviews, error: reviewError } = await supabase
-    .from("reviews")
-    .select(RANKING_REVIEW_SELECT)
-    .in("store_id", visibleStoreIds)
-    .eq("is_hidden", false)
-    .eq("excluded_from_score", false)
-    .returns<RankingReview[]>();
-
-  let rankingReviews = reviews ?? [];
-
-  if (reviewError && /text_completeness_weight|positive_text|negative_text/i.test(reviewError.message)) {
-    const { data: legacyReviews, error: legacyReviewError } = await supabase
-      .from("reviews")
-      .select(LEGACY_RANKING_REVIEW_SELECT)
-      .in("store_id", visibleStoreIds)
-      .eq("is_hidden", false)
-      .eq("excluded_from_score", false)
-      .returns<RankingReviewWithoutSectionWeight[]>();
-
-    if (legacyReviewError) {
-      throwLoggedSupabaseError(
-        "ranking-reviews.legacy",
-        `Unable to load ranking reviews: ${legacyReviewError.message}`,
-        legacyReviewError
-      );
-    }
-
-    rankingReviews = (legacyReviews ?? []).map((review) => ({
-      ...review,
-      text_completeness_weight: 1
-    }));
-  } else if (reviewError) {
-    throwLoggedSupabaseError("ranking-reviews", `Unable to load ranking reviews: ${reviewError.message}`, reviewError);
-  }
-
-  const reviewsByStoreId = groupReviewsByStore(rankingReviews);
+  const reviewsByStoreId = await getScoringReviewsForStores(visibleStoreIds);
 
   const storeById = new Map(visibleStores.map((store) => [store.id, store]));
   return scores

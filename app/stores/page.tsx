@@ -20,6 +20,8 @@ import type { StoreWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+const STORE_LIST_LIMIT = 120;
+
 type StoresPageProps = {
   searchParams?: {
     region?: string;
@@ -34,7 +36,8 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
   try {
     stores = await getStores({
       region: searchParams?.region,
-      category: searchParams?.category
+      category: searchParams?.category,
+      limit: STORE_LIST_LIMIT
     });
   } catch (error) {
     if (!isSupabaseSetupOrConnectionError(error)) {
@@ -97,11 +100,17 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
       {supabaseIssue ? (
         <DatabaseSetupNotice kind={supabaseIssue} />
       ) : stores.length ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {stores.map((store) => (
-            <StoreCard key={store.id} store={store} />
-          ))}
-        </div>
+        <>
+          <div className="mb-4 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
+            성능을 위해 현재 조건에서 최대 {STORE_LIST_LIMIT}개 매장을 먼저 표시합니다. 지역과 카테고리를
+            좁히면 더 빠르게 탐색할 수 있습니다.
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {stores.map((store) => (
+              <StoreCard key={store.id} store={store} />
+            ))}
+          </div>
+        </>
       ) : (
         <div className="rounded-lg border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500">
           선택한 조건에 맞는 매장이 없습니다.
