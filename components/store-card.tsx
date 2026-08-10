@@ -21,7 +21,10 @@ export function StoreCard({ store }: StoreCardProps) {
   const hasCoordinates = typeof store.lat === "number" && typeof store.lng === "number";
 
   return (
-    <Card className="transition hover:border-zinc-300 hover:shadow-[0_16px_40px_rgba(15,23,42,0.07)]">
+    <Card
+      id={`store-${store.id}`}
+      className="scroll-mt-24 transition target:border-zinc-950 target:ring-2 target:ring-zinc-950/10 hover:border-zinc-300 hover:shadow-[0_16px_40px_rgba(15,23,42,0.07)]"
+    >
       <CardHeader className="space-y-4 pb-4">
         <div>
           <div className="flex flex-wrap items-center gap-2">

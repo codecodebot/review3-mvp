@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { LocateFixed, ZoomIn, ZoomOut } from "lucide-react";
+import { Check, Clipboard, LocateFixed, ListTree, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent, WheelEvent } from "react";
 import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
@@ -126,6 +126,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
   const [dragStart, setDragStart] = useState<PixelPoint | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(stores[0]?.id ?? null);
+  const [copiedStoreId, setCopiedStoreId] = useState<string | null>(null);
 
   useEffect(() => {
     const node = containerRef.current;
@@ -239,6 +240,35 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
   function handleWheel(event: WheelEvent<HTMLDivElement>) {
     event.preventDefault();
     updateZoom(zoomOffset + (event.deltaY > 0 ? -1 : 1));
+  }
+
+  async function copySelectedStoreAddress() {
+    if (!selectedStore) {
+      return;
+    }
+
+    const value =
+      selectedStore.address ??
+      `${selectedStore.name} (${selectedStore.lat.toFixed(6)}, ${selectedStore.lng.toFixed(6)})`;
+
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopiedStoreId(selectedStore.id);
+      window.setTimeout(() => setCopiedStoreId(null), 1600);
+    } catch {
+      setCopiedStoreId(null);
+    }
+  }
+
+  function scrollSelectedStoreIntoList() {
+    if (!selectedStore) {
+      return;
+    }
+
+    const elementId = `store-${selectedStore.id}`;
+    const target = document.getElementById(elementId);
+    window.history.pushState(null, "", `#${elementId}`);
+    target?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
 
   if (!stores.length) {
@@ -356,7 +386,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
         </div>
         {selectedStore ? (
           <div className="absolute bottom-4 left-4 right-4 max-w-md rounded-2xl border border-zinc-200 bg-white/95 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur">
-            <div className="flex items-start justify-between gap-4">
+            <div className="space-y-3">
               <div>
                 <div className="line-clamp-1 text-sm font-semibold text-zinc-950">{selectedStore.name}</div>
                 <p className="mt-1 text-xs font-medium text-zinc-500">
@@ -366,12 +396,34 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
                   <p className="mt-2 line-clamp-2 text-xs leading-5 text-zinc-600">{selectedStore.address}</p>
                 ) : null}
               </div>
-              <Link
-                href={`/stores/${selectedStore.id}#location-map`}
-                className="shrink-0 rounded-full border border-zinc-300 px-3 py-2 text-xs font-semibold text-zinc-800 hover:bg-zinc-50"
-              >
-                상세
-              </Link>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={scrollSelectedStoreIntoList}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-zinc-300 bg-white px-3 text-xs font-semibold text-zinc-800 transition hover:border-zinc-400 hover:bg-zinc-50"
+                >
+                  <ListTree className="h-3.5 w-3.5" aria-hidden="true" />
+                  목록에서 보기
+                </button>
+                <Link
+                  href={`/stores/${selectedStore.id}#location-map`}
+                  className="inline-flex h-8 items-center rounded-full border border-zinc-300 bg-white px-3 text-xs font-semibold text-zinc-800 transition hover:border-zinc-400 hover:bg-zinc-50"
+                >
+                  상세
+                </Link>
+                <button
+                  type="button"
+                  onClick={copySelectedStoreAddress}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-zinc-300 bg-white px-3 text-xs font-semibold text-zinc-800 transition hover:border-zinc-400 hover:bg-zinc-50"
+                >
+                  {copiedStoreId === selectedStore.id ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden="true" />
+                  ) : (
+                    <Clipboard className="h-3.5 w-3.5" aria-hidden="true" />
+                  )}
+                  {copiedStoreId === selectedStore.id ? "복사됨" : "주소 복사"}
+                </button>
+              </div>
             </div>
           </div>
         ) : null}
