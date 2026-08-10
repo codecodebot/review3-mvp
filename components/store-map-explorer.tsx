@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent, WheelEvent } from "react";
 import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
 import type { StoreMapPoint } from "@/lib/types";
 
@@ -23,19 +24,19 @@ type PixelPoint = {
 
 const TILE_SIZE = 256;
 const MIN_ZOOM = 7;
-const MAX_ZOOM = 15;
+const MAX_ZOOM = 16;
 const DEFAULT_CENTER = { lat: 37.4979, lng: 126.8844 };
-const DEFAULT_SIZE = { width: 960, height: 520 };
+const DEFAULT_SIZE = { width: 960, height: 540 };
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function lngToTileX(lng: number, zoom: number) {
+function lngToWorldX(lng: number, zoom: number) {
   return ((lng + 180) / 360) * TILE_SIZE * 2 ** zoom;
 }
 
-function latToTileY(lat: number, zoom: number) {
+function latToWorldY(lat: number, zoom: number) {
   const latRad = (lat * Math.PI) / 180;
   return (
     ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) *
@@ -46,8 +47,8 @@ function latToTileY(lat: number, zoom: number) {
 
 function projectPoint(lat: number, lng: number, zoom: number): PixelPoint {
   return {
-    x: lngToTileX(lng, zoom),
-    y: latToTileY(lat, zoom)
+    x: lngToWorldX(lng, zoom),
+    y: latToWorldY(lat, zoom)
   };
 }
 
@@ -96,10 +97,10 @@ function getFitZoom(stores: StoreMapPoint[], size: Size) {
   const paddedHeight = Math.max(size.height * 0.78, 260);
 
   for (let zoom = MAX_ZOOM; zoom >= MIN_ZOOM; zoom -= 1) {
-    const nw = projectPoint(bounds.maxLat, bounds.minLng, zoom);
-    const se = projectPoint(bounds.minLat, bounds.maxLng, zoom);
-    const width = Math.abs(se.x - nw.x);
-    const height = Math.abs(se.y - nw.y);
+    const northwest = projectPoint(bounds.maxLat, bounds.minLng, zoom);
+    const southeast = projectPoint(bounds.minLat, bounds.maxLng, zoom);
+    const width = Math.abs(southeast.x - northwest.x);
+    const height = Math.abs(southeast.y - northwest.y);
 
     if (width <= paddedWidth && height <= paddedHeight) {
       return zoom;
@@ -120,6 +121,9 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState<Size>(DEFAULT_SIZE);
   const [zoomOffset, setZoomOffset] = useState(0);
+  const [panOffset, setPanOffset] = useState<PixelPoint>({ x: 0, y: 0 });
+  const [dragStart, setDragStart] = useState<PixelPoint | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(stores[0]?.id ?? null);
 
   useEffect(() => {
@@ -144,6 +148,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
   useEffect(() => {
     setSelectedStoreId(stores[0]?.id ?? null);
     setZoomOffset(0);
+    setPanOffset({ x: 0, y: 0 });
   }, [stores]);
 
   const center = useMemo(() => getCenter(stores), [stores]);
@@ -151,8 +156,8 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
   const zoom = clamp(fitZoom + zoomOffset, MIN_ZOOM, MAX_ZOOM);
   const centerPixel = projectPoint(center.lat, center.lng, zoom);
   const topLeft = {
-    x: centerPixel.x - size.width / 2,
-    y: centerPixel.y - size.height / 2
+    x: centerPixel.x - size.width / 2 - panOffset.x,
+    y: centerPixel.y - size.height / 2 - panOffset.y
   };
   const selectedStore = stores.find((store) => store.id === selectedStoreId) ?? stores[0] ?? null;
 
@@ -191,6 +196,50 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
     [stores, topLeft.x, topLeft.y, zoom]
   );
 
+  function updateZoom(nextOffset: number) {
+    setZoomOffset(clamp(nextOffset, MIN_ZOOM - fitZoom, MAX_ZOOM - fitZoom));
+  }
+
+  function resetView() {
+    setZoomOffset(0);
+    setPanOffset({ x: 0, y: 0 });
+  }
+
+  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+    if ((event.target as HTMLElement).closest("button,a")) {
+      return;
+    }
+
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDragStart({ x: event.clientX, y: event.clientY });
+    setIsDragging(true);
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (!dragStart) {
+      return;
+    }
+
+    const deltaX = event.clientX - dragStart.x;
+    const deltaY = event.clientY - dragStart.y;
+    setPanOffset((value) => ({ x: value.x + deltaX, y: value.y + deltaY }));
+    setDragStart({ x: event.clientX, y: event.clientY });
+  }
+
+  function stopDragging(event: PointerEvent<HTMLDivElement>) {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    setDragStart(null);
+    setIsDragging(false);
+  }
+
+  function handleWheel(event: WheelEvent<HTMLDivElement>) {
+    event.preventDefault();
+    updateZoom(zoomOffset + (event.deltaY > 0 ? -1 : 1));
+  }
+
   if (!stores.length) {
     return (
       <section className="rounded-3xl border border-zinc-200 bg-white p-6">
@@ -208,34 +257,49 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
         <div>
           <div className="text-sm font-semibold text-zinc-950">전체 지도</div>
           <p className="mt-1 text-xs text-zinc-500">
-            현재 필터의 좌표 등록 매장 {stores.length.toLocaleString("ko-KR")}개를 지도 안에서 표시합니다.
+            현재 필터의 좌표 등록 매장 {stores.length.toLocaleString("ko-KR")}개를 표시합니다.
+            드래그로 이동하고 휠로 확대/축소할 수 있습니다.
           </p>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setZoomOffset((value) => clamp(value - 1, MIN_ZOOM - fitZoom, MAX_ZOOM - fitZoom))}
+            onClick={() => updateZoom(zoomOffset - 1)}
             className="h-9 rounded-full border border-zinc-300 px-3 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
           >
             축소
           </button>
           <button
             type="button"
-            onClick={() => setZoomOffset(0)}
+            onClick={resetView}
             className="h-9 rounded-full border border-zinc-300 px-3 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
           >
             전체 보기
           </button>
           <button
             type="button"
-            onClick={() => setZoomOffset((value) => clamp(value + 1, MIN_ZOOM - fitZoom, MAX_ZOOM - fitZoom))}
+            onClick={() => updateZoom(zoomOffset + 1)}
             className="h-9 rounded-full border border-zinc-300 px-3 text-sm font-semibold text-zinc-800 hover:bg-zinc-50"
           >
             확대
           </button>
         </div>
       </div>
-      <div ref={containerRef} className="relative h-[520px] overflow-hidden bg-zinc-100">
+      <div
+        ref={containerRef}
+        role="application"
+        aria-label="매장 위치 인터랙티브 지도"
+        tabIndex={0}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={stopDragging}
+        onPointerCancel={stopDragging}
+        onPointerLeave={stopDragging}
+        onWheel={handleWheel}
+        className={`relative h-[540px] touch-none overflow-hidden bg-zinc-100 outline-none ${
+          isDragging ? "cursor-grabbing" : "cursor-grab"
+        }`}
+      >
         {tiles.map((tile) => (
           <img
             key={tile.key}
@@ -257,6 +321,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
                 type="button"
                 aria-label={`${store.name} 지도 마커`}
                 title={store.name}
+                onPointerDown={(event) => event.stopPropagation()}
                 onClick={() => setSelectedStoreId(store.id)}
                 className={`absolute -translate-x-1/2 -translate-y-1/2 rounded-full border transition ${
                   isSelected
