@@ -14,6 +14,7 @@ import type {
   ReviewWithProfile,
   RankingReview,
   Store,
+  StoreMenu,
   StoreScoreCache,
   StoreWithScore,
   StoreWithScoreAndReviews
@@ -277,6 +278,27 @@ export async function getReviewsForStore(storeId: string) {
 
   if (error) {
     throwLoggedSupabaseError("store-reviews", `Unable to load reviews: ${error.message}`, error);
+  }
+
+  return data ?? [];
+}
+
+export async function getStoreMenus(storeId: string) {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from("store_menus")
+    .select("*")
+    .eq("store_id", storeId)
+    .order("position", { ascending: true })
+    .order("name", { ascending: true })
+    .returns<StoreMenu[]>();
+
+  if (error) {
+    if (/store_menus|relation .* does not exist/i.test(error.message)) {
+      return [];
+    }
+
+    throwLoggedSupabaseError("store-menus", `Unable to load store menus: ${error.message}`, error);
   }
 
   return data ?? [];

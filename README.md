@@ -149,6 +149,7 @@ Open `http://localhost:3000`.
 - `/admin/reports` resolves reports
 - `/admin/reviews` hides reviews or excludes them from scoring
 - `/admin/stores` manages verification status and ranking limits
+- `/admin/stores/new` registers real stores with location coordinates and representative menus
 
 ## Scoring Logic
 
@@ -232,6 +233,10 @@ unique reviewers, `revisit_rate` is stored as `null` and the UI shows `Data insu
   - average-centered normalized ranking
   - synthetic store marker
   - cache normalization refresh function
+- `supabase/migrations/0008_store_menus.sql`
+  - representative menu table
+  - public menu reads
+  - admin-only menu writes
 - `supabase/seed.sql`
   - 10 stores
   - 5 sample users/profiles

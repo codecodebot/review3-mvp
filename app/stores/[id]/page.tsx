@@ -6,18 +6,20 @@ import { ReviewCard } from "@/components/review-card";
 import { RevisitRateDetail } from "@/components/revisit-rate";
 import { RisingStoreBadge } from "@/components/rising-store-badge";
 import { ScoreBadge } from "@/components/score-badge";
+import { StoreMap } from "@/components/store-map";
+import { StoreMenuList } from "@/components/store-menu-list";
 import { TrustBadge } from "@/components/trust-badge";
 import { VerificationBadge } from "@/components/verification-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
-import { getReviewsForStore, getStore } from "@/lib/queries";
+import { getReviewsForStore, getStore, getStoreMenus } from "@/lib/queries";
 import {
   getSupabaseIssueKind,
   isSupabaseSetupOrConnectionError,
   type SupabaseIssueKind
 } from "@/lib/setup";
-import type { ReviewWithProfile, StoreWithScore } from "@/lib/types";
+import type { ReviewWithProfile, StoreMenu, StoreWithScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -30,10 +32,15 @@ type StoreDetailPageProps = {
 export default async function StoreDetailPage({ params }: StoreDetailPageProps) {
   let store: StoreWithScore | null = null;
   let reviews: ReviewWithProfile[] = [];
+  let menus: StoreMenu[] = [];
   let supabaseIssue: SupabaseIssueKind | null = null;
 
   try {
-    [store, reviews] = await Promise.all([getStore(params.id), getReviewsForStore(params.id)]);
+    [store, reviews, menus] = await Promise.all([
+      getStore(params.id),
+      getReviewsForStore(params.id),
+      getStoreMenus(params.id)
+    ]);
   } catch (error) {
     if (!isSupabaseSetupOrConnectionError(error)) {
       throw error;
@@ -140,6 +147,11 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
             </div>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_360px]">
+        <StoreMap store={store} />
+        <StoreMenuList menus={menus} />
       </div>
 
       <section className="mt-8">

@@ -69,6 +69,32 @@ export type Database = {
         Update: Partial<Database["public"]["Tables"]["stores"]["Insert"]>;
         Relationships: [];
       };
+      store_menus: {
+        Row: {
+          id: string;
+          store_id: string;
+          name: string;
+          price: number | null;
+          description: string | null;
+          is_signature: boolean;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          store_id: string;
+          name: string;
+          price?: number | null;
+          description?: string | null;
+          is_signature?: boolean;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["store_menus"]["Insert"]>;
+        Relationships: [];
+      };
       reviews: {
         Row: {
           id: string;
@@ -369,6 +395,7 @@ export type Database = {
 
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Store = Database["public"]["Tables"]["stores"]["Row"];
+export type StoreMenu = Database["public"]["Tables"]["store_menus"]["Row"];
 export type Review = Database["public"]["Tables"]["reviews"]["Row"];
 export type StoreScoreCache = Database["public"]["Tables"]["store_score_cache"]["Row"];
 export type ScoringSettings = Database["public"]["Tables"]["scoring_settings"]["Row"];

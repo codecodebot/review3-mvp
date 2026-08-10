@@ -35,6 +35,9 @@ export function StoreCard({ store }: StoreCardProps) {
           <p className="mt-1 text-sm font-medium text-zinc-500">
             {formatRegionLabel(store.region)} · {formatCategoryLabel(store.category)}
           </p>
+          {store.address ? (
+            <p className="mt-2 line-clamp-2 text-xs leading-5 text-zinc-500">{store.address}</p>
+          ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
           <VerificationBadge status={store.verification_status} />

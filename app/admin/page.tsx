@@ -8,7 +8,8 @@ export const dynamic = "force-dynamic";
 const adminLinks = [
   { href: "/admin/reports", label: "신고", description: "접수된 신고를 확인합니다." },
   { href: "/admin/reviews", label: "리뷰", description: "리뷰 숨김과 점수 제외를 관리합니다." },
-  { href: "/admin/stores", label: "매장", description: "인증 상태와 랭킹 제한을 관리합니다." }
+  { href: "/admin/stores", label: "매장", description: "인증 상태와 랭킹 제한을 관리합니다." },
+  { href: "/admin/stores/new", label: "매장 등록", description: "실제 매장 위치와 대표 메뉴를 등록합니다." }
 ];
 
 export default async function AdminPage() {
@@ -37,7 +38,7 @@ export default async function AdminPage() {
           신고, 리뷰 표시, 점수 제외, 매장 상태를 관리합니다.
         </p>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         {adminLinks.map((item) => (
           <Card key={item.href}>
             <CardHeader>
