@@ -23,6 +23,27 @@ type PixelPoint = {
   y: number;
 };
 
+type ScreenPoint = {
+  left: number;
+  top: number;
+};
+
+type ProjectedMarker = ScreenPoint & {
+  store: StoreMapPoint;
+};
+
+type StoreMarkerItem = ProjectedMarker & {
+  key: string;
+  type: "marker";
+};
+
+type StoreClusterItem = ScreenPoint & {
+  count: number;
+  key: string;
+  stores: StoreMapPoint[];
+  type: "cluster";
+};
+
 const TILE_SIZE = 256;
 const MIN_ZOOM = 7;
 const MAX_ZOOM = 18;
@@ -118,6 +139,20 @@ function tileUrl(x: number, y: number, zoom: number) {
   return `https://a.basemaps.cartocdn.com/rastertiles/voyager/${zoom}/${wrappedX}/${y}@2x.png`;
 }
 
+function getClusterCellSize(zoom: number, storeCount: number) {
+  if (storeCount < 80 || zoom >= 16) return 0;
+  if (zoom <= 10) return 96;
+  if (zoom <= 12) return 80;
+  if (zoom <= 14) return 64;
+  return 52;
+}
+
+function getClusterSize(count: number) {
+  if (count >= 100) return 48;
+  if (count >= 25) return 42;
+  return 36;
+}
+
 export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState<Size>(DEFAULT_SIZE);
@@ -184,7 +219,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
     return nextTiles;
   }, [size.height, size.width, topLeft.x, topLeft.y, zoom]);
 
-  const markers = useMemo(
+  const markers = useMemo<ProjectedMarker[]>(
     () =>
       stores.map((store) => {
         const point = projectPoint(store.lat, store.lng, zoom);
@@ -198,6 +233,86 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
     [stores, topLeft.x, topLeft.y, zoom]
   );
 
+  const mapItems = useMemo(() => {
+    const cellSize = getClusterCellSize(zoom, stores.length);
+
+    if (!cellSize) {
+      return {
+        clusterCount: 0,
+        items: markers.map<StoreMarkerItem>((marker) => ({
+          ...marker,
+          key: marker.store.id,
+          type: "marker"
+        })),
+        markerCount: markers.length
+      };
+    }
+
+    const buckets = new Map<
+      string,
+      {
+        leftTotal: number;
+        stores: StoreMapPoint[];
+        topTotal: number;
+      }
+    >();
+    const items: Array<StoreMarkerItem | StoreClusterItem> = [];
+
+    markers.forEach((marker) => {
+      if (marker.store.id === selectedStoreId) {
+        items.push({ ...marker, key: marker.store.id, type: "marker" });
+        return;
+      }
+
+      const gridX = Math.floor(marker.left / cellSize);
+      const gridY = Math.floor(marker.top / cellSize);
+      const key = `${gridX}:${gridY}`;
+      const bucket = buckets.get(key);
+
+      if (bucket) {
+        bucket.leftTotal += marker.left;
+        bucket.topTotal += marker.top;
+        bucket.stores.push(marker.store);
+      } else {
+        buckets.set(key, {
+          leftTotal: marker.left,
+          stores: [marker.store],
+          topTotal: marker.top
+        });
+      }
+    });
+
+    buckets.forEach((bucket, key) => {
+      if (bucket.stores.length === 1) {
+        const store = bucket.stores[0];
+        const point = projectPoint(store.lat, store.lng, zoom);
+        items.push({
+          key: store.id,
+          left: point.x - topLeft.x,
+          store,
+          top: point.y - topLeft.y,
+          type: "marker"
+        });
+        return;
+      }
+
+      items.push({
+        count: bucket.stores.length,
+        key: `cluster-${zoom}-${key}`,
+        left: bucket.leftTotal / bucket.stores.length,
+        stores: bucket.stores,
+        top: bucket.topTotal / bucket.stores.length,
+        type: "cluster"
+      });
+    });
+
+    return {
+      clusterCount: items.filter((item) => item.type === "cluster").length,
+      items,
+      markerCount: items.filter((item) => item.type === "marker").length
+    };
+  }, [markers, selectedStoreId, stores.length, topLeft.x, topLeft.y, zoom]);
+
   function updateZoom(nextOffset: number) {
     setZoomOffset(clamp(nextOffset, MIN_ZOOM - fitZoom, MAX_ZOOM - fitZoom));
   }
@@ -205,6 +320,26 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
   function resetView() {
     setZoomOffset(0);
     setPanOffset({ x: 0, y: 0 });
+  }
+
+  function focusStore(store: StoreMapPoint, zoomStep = 2) {
+    const nextZoomOffset = clamp(zoomOffset + zoomStep, MIN_ZOOM - fitZoom, MAX_ZOOM - fitZoom);
+    const nextZoom = clamp(fitZoom + nextZoomOffset, MIN_ZOOM, MAX_ZOOM);
+    const baseCenter = projectPoint(center.lat, center.lng, nextZoom);
+    const targetPoint = projectPoint(store.lat, store.lng, nextZoom);
+
+    setSelectedStoreId(store.id);
+    setZoomOffset(nextZoomOffset);
+    setPanOffset({
+      x: baseCenter.x - targetPoint.x,
+      y: baseCenter.y - targetPoint.y
+    });
+  }
+
+  function focusCluster(storesInCluster: StoreMapPoint[]) {
+    const [firstStore] = storesInCluster;
+    if (!firstStore) return;
+    focusStore(firstStore, 2);
   }
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -291,6 +426,11 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
             현재 필터의 좌표 등록 매장 {stores.length.toLocaleString("ko-KR")}개를 고해상도 지도에 표시합니다.
             드래그로 이동하고 휠로 확대/축소할 수 있습니다.
           </p>
+          {mapItems.clusterCount > 0 ? (
+            <p className="mt-1 text-xs font-medium text-zinc-600">
+              가까운 좌표는 {mapItems.clusterCount.toLocaleString("ko-KR")}개 묶음으로 정리했습니다.
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -348,8 +488,32 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
             draggable={false}
           />
         ))}
+        <div className="absolute left-3 top-3 z-20 rounded-full border border-zinc-200 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-[0_6px_18px_rgba(15,23,42,0.08)] backdrop-blur">
+          표시 {mapItems.markerCount.toLocaleString("ko-KR")}개
+          {mapItems.clusterCount > 0 ? ` · 묶음 ${mapItems.clusterCount.toLocaleString("ko-KR")}개` : null}
+        </div>
         <div className="absolute inset-0">
-          {markers.map(({ store, left, top }) => {
+          {mapItems.items.map((item) => {
+            if (item.type === "cluster") {
+              const size = getClusterSize(item.count);
+
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  aria-label={`근처 매장 ${item.count.toLocaleString("ko-KR")}개 확대해서 보기`}
+                  title={`${item.count.toLocaleString("ko-KR")}개 매장`}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onClick={() => focusCluster(item.stores)}
+                  className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/90 bg-zinc-950/90 text-xs font-semibold tabular-nums text-white shadow-[0_10px_22px_rgba(15,23,42,0.2)] transition hover:scale-105 hover:bg-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
+                  style={{ height: size, left: item.left, top: item.top, width: size }}
+                >
+                  {item.count.toLocaleString("ko-KR")}
+                </button>
+              );
+            }
+
+            const { store, left, top } = item;
             const isSelected = store.id === selectedStore?.id;
 
             return (
