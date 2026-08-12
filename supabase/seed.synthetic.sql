@@ -6,6 +6,8 @@
 --   - 1,000 synthetic stores
 --   - 1,000 synthetic auth users/profiles
 --   - 50,000+ synthetic reviews
+--   - 60%+ of synthetic review scores in the 3.5-5.0 range to mirror
+--     inflated public rating distributions
 --
 -- It deletes and recreates rows explicitly marked is_synthetic = true, then
 -- enables synthetic reviews for scoring. It is intentionally scoped to demo
@@ -271,10 +273,10 @@ scored_reviews as (
       else 0::numeric
     end as persona_bias,
     case
-      when (store_no * 19 + review_index * 23 + user_no) % 100 < 8 then -1.15::numeric
-      when (store_no * 19 + review_index * 23 + user_no) % 100 < 18 then -0.55::numeric
-      when (store_no * 19 + review_index * 23 + user_no) % 100 < 74 then 0.18::numeric
-      else 0.36::numeric
+      when (store_no * 19 + review_index * 23 + user_no) % 100 < 6 then -1.05::numeric
+      when (store_no * 19 + review_index * 23 + user_no) % 100 < 14 then -0.45::numeric
+      when (store_no * 19 + review_index * 23 + user_no) % 100 < 78 then 0.26::numeric
+      else 0.48::numeric
     end as inflation_bias,
     ((((store_no * 41 + review_index * 17 + user_no * 3) % 11) - 5)::numeric * 0.07) as taste_noise,
     ((((store_no * 31 + review_index * 13 + user_no * 5) % 11) - 5)::numeric * 0.07) as service_noise,
@@ -483,6 +485,17 @@ select
     from public.reviews
     where is_synthetic = true
       and review_score >= 4.5
-  ) as high_raw_review_count;
+  ) as high_raw_review_count,
+  (
+    select round(
+      (
+        count(*) filter (where review_score >= 3.5 and review_score <= 5)::numeric
+        / nullif(count(*), 0)
+      ) * 100,
+      2
+    )
+    from public.reviews
+    where is_synthetic = true
+  ) as pct_reviews_between_3_5_and_5;
 
 commit;

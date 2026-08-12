@@ -47,6 +47,7 @@ export default async function TtIndexPage() {
   try {
     const stores = await getStores();
     const scorePairs = stores
+      .filter((store) => (store.score?.review_count ?? 0) >= 5)
       .map((store) => ({
         rawScore: store.score?.raw_score,
         ttScore: store.score?.adjusted_score
@@ -106,7 +107,7 @@ export default async function TtIndexPage() {
         <MetricCard
           label="Stores Analyzed"
           value={distributionSummary.storeCount.toLocaleString()}
-          helper="현재 데이터 기준"
+          helper="리뷰 5개 이상 매장"
         />
       </section>
 
