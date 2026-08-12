@@ -5,6 +5,7 @@ import { MetricCard } from "@/components/metric-card";
 import { StoreRankCard } from "@/components/store-rank-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import {
   DEFAULT_RECENCY_OPTIONS,
   DEFAULT_SCORE_WEIGHTS,
@@ -28,6 +29,7 @@ type RankedStore = StoreWithScoreAndReviews & {
 };
 
 const STORAGE_KEY = "trusttable.scoringWeights.v1";
+type RankingSortMetric = "tt-index" | "raw-score";
 
 function formatScore(value: number) {
   return Number.isFinite(value) ? value.toFixed(2) : "0.00";
@@ -90,6 +92,20 @@ function parseStoredWeights(value: string | null) {
   }
 }
 
+function sortRankedStores(stores: RankedStore[], sortMetric: RankingSortMetric) {
+  return [...stores].sort((a, b) => {
+    if (sortMetric === "raw-score") {
+      return b.rawScore - a.rawScore || b.normalizedScore - a.normalizedScore;
+    }
+
+    return b.normalizedScore - a.normalizedScore || b.rawScore - a.rawScore;
+  });
+}
+
+function getSortLabel(sortMetric: RankingSortMetric) {
+  return sortMetric === "raw-score" ? "RAW Score" : "TT Index";
+}
+
 function buildRankedStores(stores: StoreWithScoreAndReviews[], weights: ScoreWeights) {
   const scoredStores = stores.filter((store) => (store.score?.review_count ?? 0) >= 5);
 
@@ -104,27 +120,25 @@ function buildRankedStores(stores: StoreWithScoreAndReviews[], weights: ScoreWei
   });
 
   const rawAverage = calculateRawAverage(storesWithRaw.map((item) => item.rawScore));
-  const rankedStores = storesWithRaw
-    .map<RankedStore>(({ store, rawScore }) => {
-      const normalizedScore = calculateAdjustedScore({ rawScore, rawAverage });
-      const rising = calculateRisingStoreSignal(store.ranking_reviews, weights, {
-        halfLifeDays: DEFAULT_RECENCY_OPTIONS.halfLifeDays,
-        minRecencyWeight: DEFAULT_RECENCY_OPTIONS.minRecencyWeight
-      });
+  const rankedStores = storesWithRaw.map<RankedStore>(({ store, rawScore }) => {
+    const normalizedScore = calculateAdjustedScore({ rawScore, rawAverage });
+    const rising = calculateRisingStoreSignal(store.ranking_reviews, weights, {
+      halfLifeDays: DEFAULT_RECENCY_OPTIONS.halfLifeDays,
+      minRecencyWeight: DEFAULT_RECENCY_OPTIONS.minRecencyWeight
+    });
 
-      return {
-        ...store,
-        rising: {
-          isRising: rising.isRising,
-          risingDelta: roundTwo(rising.risingDelta),
-          recentReviewCount: rising.recentReviewCount
-        },
-        rawScore,
-        normalizedScore,
-        rawAverageDelta: rawScore - rawAverage
-      };
-    })
-    .sort((a, b) => b.normalizedScore - a.normalizedScore);
+    return {
+      ...store,
+      rising: {
+        isRising: rising.isRising,
+        risingDelta: roundTwo(rising.risingDelta),
+        recentReviewCount: rising.recentReviewCount
+      },
+      rawScore,
+      normalizedScore,
+      rawAverageDelta: rawScore - rawAverage
+    };
+  });
 
   return { rankedStores, rawAverage };
 }
@@ -245,7 +259,16 @@ function DashboardSummary({
   );
 }
 
-function TopStoreBrief({ store }: { store: RankedStore }) {
+function TopStoreBrief({
+  sortMetric,
+  store
+}: {
+  sortMetric: RankingSortMetric;
+  store: RankedStore;
+}) {
+  const sortLabel = getSortLabel(sortMetric);
+  const primaryScore = sortMetric === "raw-score" ? store.rawScore : store.normalizedScore;
+
   return (
     <Card className="overflow-hidden border-zinc-200/80 bg-zinc-950 text-white">
       <CardContent className="grid gap-6 p-6 lg:grid-cols-[1fr_280px] lg:items-center">
@@ -257,16 +280,16 @@ function TopStoreBrief({ store }: { store: RankedStore }) {
             #1 {store.name}
           </h2>
           <p className="mt-2 text-sm leading-6 text-zinc-300">
-            TT Index 기준 현재 가장 높은 매장입니다. RAW Score, 구매 인증 가중치, 최근 리뷰 흐름을
-            함께 반영했습니다.
+            현재 선택한 {sortLabel} 기준으로 가장 높은 매장입니다. RAW Score와 TT Index는 항상 함께
+            비교할 수 있습니다.
           </p>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
           <div className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-400">
-            TT Index
+            {sortLabel}
           </div>
           <div className="mt-2 text-5xl font-semibold tabular-nums tracking-tight text-white">
-            {formatScore(store.normalizedScore)}
+            {formatScore(primaryScore)}
           </div>
           <div className="mt-3 flex justify-between text-sm text-zinc-300">
             <span>RAW Score {formatScore(store.rawScore)}</span>
@@ -369,6 +392,7 @@ function MethodologyCard() {
 
 export function RankingTable({ stores }: RankingTableProps) {
   const [weights, setWeights] = useState<ScoreWeights>(DEFAULT_SCORE_WEIGHTS);
+  const [sortMetric, setSortMetric] = useState<RankingSortMetric>("tt-index");
   const [hasLoadedStoredWeights, setHasLoadedStoredWeights] = useState(false);
 
   useEffect(() => {
@@ -384,10 +408,15 @@ export function RankingTable({ stores }: RankingTableProps) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(weights));
   }, [hasLoadedStoredWeights, weights]);
 
-  const { rankedStores, rawAverage } = useMemo(
+  const { rankedStores: calculatedStores, rawAverage } = useMemo(
     () => buildRankedStores(stores, weights),
     [stores, weights]
   );
+  const rankedStores = useMemo(
+    () => sortRankedStores(calculatedStores, sortMetric),
+    [calculatedStores, sortMetric]
+  );
+  const sortLabel = getSortLabel(sortMetric);
 
   if (!rankedStores.length) {
     return (
@@ -404,23 +433,35 @@ export function RankingTable({ stores }: RankingTableProps) {
 
   return (
     <div className="space-y-6">
-      <TopStoreBrief store={leader} />
+      <TopStoreBrief store={leader} sortMetric={sortMetric} />
       <DashboardSummary stores={rankedStores} rawAverage={rawAverage} />
       <ScoringWeightsPanel weights={weights} onChange={setWeights} />
       <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
         <div className="space-y-3">
-          <div className="flex items-end justify-between gap-4">
+          <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
                 Store Ranking
               </p>
               <h2 className="mt-2 text-xl font-semibold tracking-tight text-zinc-950">
-                TT Index 기준 상위 매장
+                {sortLabel} 기준 상위 매장
               </h2>
+              <p className="mt-2 text-sm leading-6 text-zinc-500">
+                TT Index와 RAW Score를 모두 보여주되, 선택한 기준으로 순위를 다시 정렬합니다.
+              </p>
             </div>
-            <p className="hidden text-sm text-zinc-500 sm:block">
-              RAW Score와 TT Index를 항상 함께 표시합니다.
-            </p>
+            <label className="w-full space-y-2 sm:w-56">
+              <span className="text-xs font-semibold text-zinc-500">정렬 기준</span>
+              <Select
+                value={sortMetric}
+                onChange={(event) => setSortMetric(event.target.value as RankingSortMetric)}
+                aria-label="랭킹 정렬 기준"
+                className="rounded-full bg-white font-semibold"
+              >
+                <option value="tt-index">TT Index</option>
+                <option value="raw-score">RAW Score</option>
+              </Select>
+            </label>
           </div>
           <div className="space-y-3">
             {rankedStores.map((store, index) => (
