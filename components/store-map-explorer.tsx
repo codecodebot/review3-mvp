@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { Check, Clipboard, LocateFixed, ListTree, ZoomIn, ZoomOut } from "lucide-react";
+import { Check, Clipboard, LocateFixed, ListTree, MapPinned, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent, WheelEvent } from "react";
 import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
@@ -418,10 +418,14 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
   }
 
   return (
-    <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.035)]">
-      <div className="flex flex-col gap-4 border-b border-zinc-200 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <div className="text-sm font-semibold text-zinc-950">전체 지도</div>
+    <section className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-[0_18px_48px_rgba(15,23,42,0.06)]">
+      <div className="flex flex-col gap-4 border-b border-zinc-200 bg-white px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex gap-3">
+          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50 text-zinc-950">
+            <MapPinned className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
+          </div>
+          <div>
+          <div className="text-sm font-semibold text-zinc-950">인터랙티브 매장 지도</div>
           <p className="mt-1 text-xs text-zinc-500">
             현재 필터의 좌표 등록 매장 {stores.length.toLocaleString("ko-KR")}개를 고해상도 지도에 표시합니다.
             드래그로 이동하고 휠로 확대/축소할 수 있습니다.
@@ -431,14 +435,15 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
               가까운 좌표는 {mapItems.clusterCount.toLocaleString("ko-KR")}개 묶음으로 정리했습니다.
             </p>
           ) : null}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1">
           <button
             type="button"
             onClick={() => updateZoom(zoomOffset - 1)}
             aria-label="지도 축소"
             title="축소"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-950"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:bg-zinc-100 hover:text-zinc-950"
           >
             <ZoomOut className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
           </button>
@@ -447,7 +452,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
             onClick={resetView}
             aria-label="지도 전체 보기"
             title="전체 보기"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-950"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:bg-zinc-100 hover:text-zinc-950"
           >
             <LocateFixed className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
           </button>
@@ -456,7 +461,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
             onClick={() => updateZoom(zoomOffset + 1)}
             aria-label="지도 확대"
             title="확대"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:border-zinc-400 hover:bg-zinc-50 hover:text-zinc-950"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:bg-zinc-100 hover:text-zinc-950"
           >
             <ZoomIn className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
           </button>
@@ -473,7 +478,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
         onPointerCancel={stopDragging}
         onPointerLeave={stopDragging}
         onWheel={handleWheel}
-        className={`relative h-[540px] touch-none overflow-hidden bg-zinc-100 outline-none ${
+        className={`relative h-[560px] touch-none overflow-hidden bg-zinc-100 outline-none ${
           isDragging ? "cursor-grabbing" : "cursor-grab"
         }`}
       >
@@ -488,8 +493,8 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
             draggable={false}
           />
         ))}
-        <div className="absolute left-3 top-3 z-20 rounded-full border border-zinc-200 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-[0_6px_18px_rgba(15,23,42,0.08)] backdrop-blur">
-          표시 {mapItems.markerCount.toLocaleString("ko-KR")}개
+        <div className="absolute left-3 top-3 z-20 rounded-full border border-zinc-200 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-[0_8px_24px_rgba(15,23,42,0.10)] backdrop-blur">
+          좌표 {stores.length.toLocaleString("ko-KR")}개 · 표시 {mapItems.markerCount.toLocaleString("ko-KR")}개
           {mapItems.clusterCount > 0 ? ` · 묶음 ${mapItems.clusterCount.toLocaleString("ko-KR")}개` : null}
         </div>
         <div className="absolute inset-0">
@@ -505,7 +510,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
                   title={`${item.count.toLocaleString("ko-KR")}개 매장`}
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={() => focusCluster(item.stores)}
-                  className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/90 bg-zinc-950/90 text-xs font-semibold tabular-nums text-white shadow-[0_10px_22px_rgba(15,23,42,0.2)] transition hover:scale-105 hover:bg-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
+                  className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/95 bg-zinc-950/90 text-xs font-semibold tabular-nums text-white shadow-[0_12px_28px_rgba(15,23,42,0.24)] ring-4 ring-white/35 transition hover:scale-105 hover:bg-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
                   style={{ height: size, left: item.left, top: item.top, width: size }}
                 >
                   {item.count.toLocaleString("ko-KR")}
@@ -526,7 +531,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
                 onClick={() => setSelectedStoreId(store.id)}
                 className={`group absolute -translate-x-1/2 -translate-y-full outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
                   isSelected
-                    ? "z-20 h-9 w-7 text-zinc-950 drop-shadow-[0_10px_16px_rgba(15,23,42,0.22)]"
+                    ? "z-20 h-10 w-8 text-zinc-950 drop-shadow-[0_12px_18px_rgba(15,23,42,0.24)]"
                     : "z-10 h-6 w-5 text-zinc-900/80 drop-shadow-[0_4px_8px_rgba(15,23,42,0.16)] hover:h-7 hover:w-6 hover:text-zinc-950"
                 }`}
                 style={{ left, top }}
@@ -549,9 +554,12 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
           })}
         </div>
         {selectedStore ? (
-          <div className="absolute bottom-4 left-4 right-4 max-w-md rounded-2xl border border-zinc-200 bg-white/95 p-4 shadow-[0_16px_40px_rgba(15,23,42,0.12)] backdrop-blur">
+          <div className="absolute bottom-4 left-4 right-4 max-w-md rounded-3xl border border-zinc-200 bg-white/95 p-4 shadow-[0_18px_48px_rgba(15,23,42,0.16)] backdrop-blur">
             <div className="space-y-3">
               <div>
+                <div className="mb-2 inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-semibold text-zinc-500">
+                  선택된 매장
+                </div>
                 <div className="line-clamp-1 text-sm font-semibold text-zinc-950">{selectedStore.name}</div>
                 <p className="mt-1 text-xs font-medium text-zinc-500">
                   {formatRegionLabel(selectedStore.region)} · {formatCategoryLabel(selectedStore.category)}

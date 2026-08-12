@@ -23,10 +23,20 @@ export function StoreCard({ store }: StoreCardProps) {
   return (
     <Card
       id={`store-${store.id}`}
-      className="scroll-mt-24 transition target:border-zinc-950 target:ring-2 target:ring-zinc-950/10 hover:border-zinc-300 hover:shadow-[0_16px_40px_rgba(15,23,42,0.07)]"
+      className="group scroll-mt-24 overflow-hidden transition target:border-zinc-950 target:ring-2 target:ring-zinc-950/10 hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-[0_18px_48px_rgba(15,23,42,0.075)]"
     >
       <CardHeader className="space-y-4 pb-4">
         <div>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <span className="rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-semibold text-zinc-500">
+              매장 프로필
+            </span>
+            {hasCoordinates ? (
+              <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                지도 표시
+              </span>
+            ) : null}
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <CardTitle className="line-clamp-2 text-lg leading-6">{store.name}</CardTitle>
             <RisingStoreBadge rising={store.rising} compact />
@@ -46,15 +56,10 @@ export function StoreCard({ store }: StoreCardProps) {
         <div className="flex flex-wrap gap-2">
           <VerificationBadge status={store.verification_status} />
           <TrustBadge level={store.score?.trust_level} />
-          {hasCoordinates ? (
-            <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
-              지도 표시
-            </span>
-          ) : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+        <div className="rounded-2xl border border-zinc-200 bg-[linear-gradient(180deg,#fafafa_0%,#ffffff_100%)] p-4">
           <RawAdjustedScoreBlock score={store.score} compact />
           <div className="mt-3">
             <ScoreDelta adjustedScore={adjustedScore} rawScore={rawScore} />
@@ -77,7 +82,7 @@ export function StoreCard({ store }: StoreCardProps) {
         <div className="grid gap-2 sm:grid-cols-2">
           <Link
             href={`/stores/${store.id}`}
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "w-full")}
+            className={cn(buttonVariants({ size: "sm" }), "w-full")}
           >
             상세 보기
           </Link>
