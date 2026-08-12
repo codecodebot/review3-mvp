@@ -82,7 +82,7 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-4xl">
                 매장별 신뢰 점수 현황
               </h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-500">
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-zinc-500">
                 매장명과 주소를 검색하고, 지역과 카테고리별로 RAW Score, TT Score, 인증 상태를 한 화면에서 비교합니다.
               </p>
             </div>
@@ -168,8 +168,8 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
           <div className="mb-6">
             <StoreMapExplorer stores={mapStores} />
           </div>
-          <div className="mb-4 flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:flex-row sm:items-center sm:justify-between">
-            <span>
+          <div className="mb-4 flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm leading-7 text-zinc-600 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:flex-row sm:items-center sm:justify-between">
+            <span className="max-w-4xl">
               지도에는 현재 검색 조건의 좌표 등록 매장을 모두 표시하고, 목록은 성능을 위해 최대{" "}
               {STORE_LIST_LIMIT}개만 먼저 보여줍니다.
             </span>

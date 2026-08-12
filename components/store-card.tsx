@@ -42,15 +42,15 @@ export function StoreCard({ store }: StoreCardProps) {
             <RisingStoreBadge rising={store.rising} compact />
           </div>
           {store.rising?.isRising ? (
-            <p className="mt-2 text-xs font-medium text-indigo-700">
+            <p className="mt-2 text-xs font-medium leading-5 text-indigo-700">
               최근 유효 리뷰가 과거 평균보다 높습니다.
             </p>
           ) : null}
-          <p className="mt-1 text-sm font-medium text-zinc-500">
+          <p className="mt-1 text-sm font-medium leading-6 text-zinc-500">
             {formatRegionLabel(store.region)} · {formatCategoryLabel(store.category)}
           </p>
           {store.address ? (
-            <p className="mt-2 line-clamp-2 text-xs leading-5 text-zinc-500">{store.address}</p>
+            <p className="mt-2 line-clamp-2 text-xs leading-6 text-zinc-500">{store.address}</p>
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">

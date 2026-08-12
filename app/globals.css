@@ -45,6 +45,7 @@
       BlinkMacSystemFont,
       sans-serif;
     font-weight: 400;
+    line-height: 1.62;
   }
 
   h1,
@@ -57,6 +58,7 @@
 
   p {
     @apply text-zinc-700;
+    line-height: 1.7;
   }
 }
 

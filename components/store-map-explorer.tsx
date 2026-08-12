@@ -426,12 +426,12 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
           </div>
           <div>
           <div className="text-sm font-semibold text-zinc-950">인터랙티브 매장 지도</div>
-          <p className="mt-1 text-xs text-zinc-500">
+          <p className="mt-1 max-w-3xl text-xs leading-5 text-zinc-500">
             현재 필터의 좌표 등록 매장 {stores.length.toLocaleString("ko-KR")}개를 고해상도 지도에 표시합니다.
             드래그로 이동하고 휠로 확대/축소할 수 있습니다.
           </p>
           {mapItems.clusterCount > 0 ? (
-            <p className="mt-1 text-xs font-medium text-zinc-600">
+            <p className="mt-1 text-xs font-medium leading-5 text-zinc-600">
               가까운 좌표는 {mapItems.clusterCount.toLocaleString("ko-KR")}개 묶음으로 정리했습니다.
             </p>
           ) : null}
@@ -561,11 +561,11 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
                   선택된 매장
                 </div>
                 <div className="line-clamp-1 text-sm font-semibold text-zinc-950">{selectedStore.name}</div>
-                <p className="mt-1 text-xs font-medium text-zinc-500">
+                <p className="mt-1 text-xs font-medium leading-5 text-zinc-500">
                   {formatRegionLabel(selectedStore.region)} · {formatCategoryLabel(selectedStore.category)}
                 </p>
                 {selectedStore.address ? (
-                  <p className="mt-2 line-clamp-2 text-xs leading-5 text-zinc-600">{selectedStore.address}</p>
+                  <p className="mt-2 line-clamp-2 text-xs leading-6 text-zinc-600">{selectedStore.address}</p>
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-2">
