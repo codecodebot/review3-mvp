@@ -28,12 +28,9 @@ function formatScore(value: number) {
 
 function SimpleList({ items }: { items: string[] }) {
   return (
-    <ul className="space-y-2">
+    <ul className="tt-simple-list">
       {items.map((item) => (
-        <li key={item} className="flex gap-2 text-sm leading-6 text-zinc-600">
-          <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-zinc-950" />
-          <span>{item}</span>
-        </li>
+        <li key={item}>{item}</li>
       ))}
     </ul>
   );
@@ -72,32 +69,32 @@ export default async function TtIndexPage() {
   const averageRawScore = average(rawScores);
 
   return (
-    <div className="container py-8 sm:py-12">
-      <section className="rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:p-8">
-        <div className="max-w-4xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+    <div className="tt-container tt-page">
+      <section className="tt-page-hero">
+        <div className="tt-page-hero__content">
+          <p className="tt-kicker">
             TT Index Methodology
           </p>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-5xl">
+          <h1 className="tt-page-title">
             TT Index는 일반 별점이 아닙니다
           </h1>
-          <p className="mt-5 max-w-3xl text-lg leading-8 text-zinc-700">
+          <p className="tt-lede">
             RAW Score는 사용자가 남긴 원래 리뷰 점수입니다. TT Index는 RAW Score를 시장 평균
             3.0 기준으로 다시 해석해, 평균보다 얼마나 높은지 또는 낮은지를 보여주는 참고 지표입니다.
           </p>
-          <div className="mt-6 inline-flex rounded-2xl border border-zinc-200 bg-zinc-50 px-5 py-3 text-base font-semibold text-zinc-950">
+          <div className="tt-callout">
             3.0은 낮은 점수가 아니라, Trusttable의 시장 평균선입니다.
           </div>
         </div>
       </section>
 
       {supabaseIssue ? (
-        <div className="mt-6">
+        <div style={{ marginTop: 24 }}>
           <DatabaseSetupNotice kind={supabaseIssue} />
         </div>
       ) : null}
 
-      <section className="mt-6 grid gap-3 sm:grid-cols-3">
+      <section className="tt-summary-grid">
         <MetricCard label="Average TT Index" value="3.00" helper="시장 평균선" />
         <MetricCard
           label="Average RAW Score"
@@ -111,49 +108,49 @@ export default async function TtIndexPage() {
         />
       </section>
 
-      <section className="mt-6 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:p-8">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+      <section className="tt-page-hero" style={{ marginTop: 24 }}>
+        <p className="tt-kicker">
           What TT Index Means
         </p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950">
+        <h2 className="tt-section-title" style={{ marginTop: 10 }}>
           RAW Score를 시장 평균선 위에서 다시 읽습니다
         </h2>
-        <p className="mt-4 max-w-3xl text-sm font-medium leading-6 text-zinc-700">
+        <p className="tt-lede">
           Trusttable은 매장의 별점을 깎기 위한 서비스가 아닙니다. 기존 RAW Score는 그대로 보여주고,
           TT Index는 시장 평균 대비 위치를 해석하는 보조 지표입니다.
         </p>
-        <div className="mt-6 grid gap-3 md:grid-cols-3">
-          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-            <div className="text-sm font-semibold text-zinc-950">RAW Score</div>
-            <p className="mt-2 text-sm leading-6 text-zinc-600">
+        <div className="tt-method-grid">
+          <div className="tt-method-chip">
+            <div className="tt-method-chip__title">RAW Score</div>
+            <p>
               사용자가 남긴 원래 리뷰 점수의 신뢰 가중 평균입니다.
             </p>
           </div>
-          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-            <div className="text-sm font-semibold text-zinc-950">시장 평균</div>
-            <p className="mt-2 text-sm leading-6 text-zinc-600">
+          <div className="tt-method-chip">
+            <div className="tt-method-chip__title">시장 평균</div>
+            <p>
               현재 비교 대상 매장들의 RAW Score 평균입니다.
             </p>
           </div>
-          <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-            <div className="text-sm font-semibold text-zinc-950">TT Index</div>
-            <p className="mt-2 text-sm leading-6 text-zinc-600">
+          <div className="tt-method-chip">
+            <div className="tt-method-chip__title">TT Index</div>
+            <p>
               시장 평균을 3.0으로 맞춘 뒤 각 매장의 상대 위치를 보여줍니다.
             </p>
           </div>
         </div>
       </section>
 
-      <section className="mt-6 grid gap-6 lg:grid-cols-2">
+      <section className="tt-info-grid tt-info-grid--two">
         <Card>
           <CardHeader>
             <CardTitle>계산 공식</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-sm text-zinc-900">
+          <CardContent>
+            <div className="tt-formula">
               TT Index = RAW Score - Market Average RAW Score + 3.0
             </div>
-            <p className="text-sm leading-6 text-zinc-600">
+            <p className="tt-card-description" style={{ marginTop: 14 }}>
               예를 들어 시장 평균 RAW가 4.45이고 A매장의 RAW가 4.75라면 TT Index는
               4.75 - 4.45 + 3.0 = 3.30입니다.
             </p>
@@ -177,7 +174,7 @@ export default async function TtIndexPage() {
         </Card>
       </section>
 
-      <div className="mt-6">
+      <div style={{ marginTop: 24 }}>
         <ScoreDistributionChart summary={distributionSummary} />
       </div>
     </div>

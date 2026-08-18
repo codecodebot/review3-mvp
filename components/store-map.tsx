@@ -10,17 +10,20 @@ export function StoreMap({ store }: StoreMapProps) {
 
   if (typeof lat !== "number" || typeof lng !== "number") {
     return (
-      <section id="location-map" className="rounded-3xl border border-zinc-200 bg-white p-5">
-        <div className="text-sm font-semibold text-zinc-950">위치</div>
-        <div className="mt-4 flex min-h-56 items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-6 text-center">
+      <section id="location-map" className="tt-detail-map-card">
+        <div className="tt-detail-map-card__header">
           <div>
-            <p className="text-sm font-medium text-zinc-700">지도 좌표가 아직 등록되지 않았습니다.</p>
+            <div className="tt-card-title">위치</div>
+            <p className="tt-card-description">좌표 상태</p>
+          </div>
+        </div>
+        <div className="tt-detail-map-card__empty">
+          <div>
+            <p>지도 좌표가 아직 등록되지 않았습니다.</p>
             {store.address ? (
-              <p className="mt-2 text-sm leading-6 text-zinc-500">{store.address}</p>
+              <p>{store.address}</p>
             ) : (
-              <p className="mt-2 text-sm leading-6 text-zinc-500">
-                주소 또는 좌표를 등록하면 위치가 표시됩니다.
-              </p>
+              <p>주소 또는 좌표를 등록하면 위치가 표시됩니다.</p>
             )}
           </div>
         </div>
@@ -35,27 +38,27 @@ export function StoreMap({ store }: StoreMapProps) {
   )}&layer=mapnik&marker=${encodeURIComponent(`${lat},${lng}`)}`;
 
   return (
-    <section id="location-map" className="overflow-hidden rounded-3xl border border-zinc-200 bg-white">
-      <div className="flex items-center justify-between gap-4 border-b border-zinc-200 px-5 py-4">
+    <section id="location-map" className="tt-detail-map-card">
+      <div className="tt-detail-map-card__header">
         <div>
-          <div className="text-sm font-semibold text-zinc-950">위치</div>
-          <p className="mt-1 text-xs text-zinc-500">
+          <div className="tt-card-title">위치</div>
+          <p className="tt-card-description">
             {lat.toFixed(5)}, {lng.toFixed(5)}
           </p>
         </div>
-        <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-600">
+        <span className="tt-badge tt-badge--muted">
           임베디드 지도
         </span>
       </div>
       <iframe
         title={`${store.name} 위치 지도`}
         src={embedUrl}
-        className="h-72 w-full border-0"
+        className="tt-detail-map-iframe"
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
       />
       {store.address ? (
-        <div className="border-t border-zinc-200 px-5 py-3 text-sm text-zinc-600">{store.address}</div>
+        <div className="tt-detail-map-address">{store.address}</div>
       ) : null}
     </section>
   );

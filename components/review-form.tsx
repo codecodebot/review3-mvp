@@ -47,10 +47,10 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
         <CardTitle>리뷰 작성</CardTitle>
       </CardHeader>
       <CardContent>
-        <form action={createReviewAction} className="space-y-5">
+        <form action={createReviewAction} className="tt-form-stack">
           <input type="hidden" name="store_id" value={storeId} />
-          <div className="grid gap-4 sm:grid-cols-3">
-            <div className="space-y-2">
+          <div className="tt-form-grid-3">
+            <div className="tt-field">
               <Label htmlFor="taste_score">맛</Label>
               <Input
                 id="taste_score"
@@ -63,7 +63,7 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
                 required
               />
             </div>
-            <div className="space-y-2">
+            <div className="tt-field">
               <Label htmlFor="service_score">서비스</Label>
               <Input
                 id="service_score"
@@ -76,7 +76,7 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
                 required
               />
             </div>
-            <div className="space-y-2">
+            <div className="tt-field">
               <Label htmlFor="environment_score">분위기</Label>
               <Input
                 id="environment_score"
@@ -91,12 +91,12 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
             </div>
           </div>
 
-          <div className="rounded-md border bg-muted p-3 text-sm">
+          <div className="tt-score-callout">
             계산된 리뷰 점수: <strong>{reviewScore.toFixed(2)}</strong>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
+          <div className="tt-form-grid-2">
+            <div className="tt-field">
               <Label htmlFor="positive_text">좋았던 점</Label>
               <Textarea
                 id="positive_text"
@@ -104,11 +104,11 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
                 placeholder="좋았던 맛, 서비스, 분위기를 적어주세요."
                 rows={5}
               />
-              <p className="text-xs text-zinc-500">
+              <p className="tt-helper-text">
                 이 항목에는 긍정적이거나 중립적인 내용을 적는 것이 자연스럽습니다.
               </p>
             </div>
-            <div className="space-y-2">
+            <div className="tt-field">
               <Label htmlFor="negative_text">아쉬웠던 점</Label>
               <Textarea
                 id="negative_text"
@@ -116,14 +116,14 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
                 placeholder="아쉬웠던 점이 있다면 적어주세요."
                 rows={5}
               />
-              <p className="text-xs text-zinc-500">
+              <p className="tt-helper-text">
                 이 항목에는 아쉬운 점이나 개선되면 좋을 점을 적어주세요.
               </p>
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
+          <div className="tt-form-grid-2">
+            <div className="tt-field">
               <Label htmlFor="visit_type">방문 유형</Label>
               <Select id="visit_type" name="visit_type" defaultValue="friends">
                 {VISIT_TYPES.map((visitType) => (
@@ -133,7 +133,7 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
                 ))}
               </Select>
             </div>
-            <div className="space-y-2">
+            <div className="tt-field">
               <Label htmlFor="price_satisfaction">가격 만족도</Label>
               <Select id="price_satisfaction" name="price_satisfaction" defaultValue="fair">
                 {PRICE_SATISFACTION.map((value) => (
@@ -145,7 +145,7 @@ export function ReviewForm({ storeId }: ReviewFormProps) {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="tt-field">
             <Label htmlFor="photo_url">사진 URL</Label>
             <Input id="photo_url" name="photo_url" type="url" placeholder="https://..." />
           </div>

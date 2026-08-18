@@ -49,43 +49,43 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
   const errorMessage = displayAuthError(searchParams?.error);
 
   return (
-    <div className="container max-w-5xl py-10">
-      <div className="mb-6">
-        <Link href="/" className="text-sm font-medium text-primary hover:underline">
+    <div className="tt-page-medium tt-page">
+      <div className="tt-page-intro">
+        <Link href="/" className="tt-button tt-button--ghost tt-button--sm tt-back-link">
           홈으로
         </Link>
-        <h1 className="mt-4 text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">로그인</h1>
-        <p className="mt-2 text-sm leading-6 text-zinc-500">
+        <h1 className="tt-page-title">로그인</h1>
+        <p className="tt-lede">
           이메일과 비밀번호로 로그인해 리뷰를 작성하고 계정을 사용할 수 있습니다.
         </p>
       </div>
 
       {errorMessage ? (
-        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="tt-alert" style={{ marginBottom: 16 }}>
           {errorMessage}
         </div>
       ) : null}
 
       {searchParams?.message ? (
-        <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <div className="tt-alert" style={{ marginBottom: 16 }}>
           {searchParams.message}
         </div>
       ) : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="tt-auth-grid">
         <Card>
           <CardHeader>
             <CardTitle>로그인</CardTitle>
             <CardDescription>기존 계정으로 계속합니다.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={loginAction} className="space-y-4">
+            <form action={loginAction} className="tt-form-stack">
               <input type="hidden" name="return_to" value={returnTo} />
-              <div className="space-y-2">
+              <div className="tt-field">
                 <Label htmlFor="login-email">이메일</Label>
                 <Input id="login-email" name="email" type="email" autoComplete="email" required />
               </div>
-              <div className="space-y-2">
+              <div className="tt-field">
                 <Label htmlFor="login-password">비밀번호</Label>
                 <Input
                   id="login-password"
@@ -95,7 +95,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="tt-button-full">
                 로그인
               </Button>
             </form>
@@ -108,17 +108,17 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
             <CardDescription>계정과 프로필을 함께 만듭니다.</CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={signupAction} className="space-y-4">
+            <form action={signupAction} className="tt-form-stack">
               <input type="hidden" name="return_to" value={returnTo} />
-              <div className="space-y-2">
+              <div className="tt-field">
                 <Label htmlFor="signup-nickname">닉네임</Label>
                 <Input id="signup-nickname" name="nickname" autoComplete="nickname" />
               </div>
-              <div className="space-y-2">
+              <div className="tt-field">
                 <Label htmlFor="signup-email">이메일</Label>
                 <Input id="signup-email" name="email" type="email" autoComplete="email" required />
               </div>
-              <div className="space-y-2">
+              <div className="tt-field">
                 <Label htmlFor="signup-password">비밀번호</Label>
                 <Input
                   id="signup-password"
@@ -129,7 +129,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="tt-button-full">
                 가입하기
               </Button>
             </form>

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { logoutAction } from "@/app/actions/auth";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
-import { cn } from "@/lib/utils";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -46,36 +45,34 @@ export default async function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <div className="min-h-screen bg-zinc-50">
-          <header className="sticky top-0 z-30 border-b border-zinc-200/80 bg-white/90 backdrop-blur-xl">
-            <div className="container flex min-h-16 flex-wrap items-center justify-between gap-4 py-3">
-              <Link href="/" className="flex shrink-0 items-center" aria-label="Trusttable 홈">
+        <div className="tt-app-shell">
+          <header className="tt-header">
+            <div className="tt-container tt-header__inner">
+              <Link href="/" className="tt-brand" aria-label="Trusttable 홈">
                 <Image
                   src="/brand/trusttable-logo.png"
                   alt="Trusttable"
                   width={160}
                   height={160}
                   priority
-                  className="h-8 w-auto object-contain"
+                  className="tt-brand__image"
                 />
               </Link>
-              <div className="flex flex-wrap items-center justify-end gap-3">
-                <nav className="flex items-center gap-2 text-sm">
+              <div className="tt-header__actions">
+                <nav className="tt-nav" aria-label="주요 메뉴">
                   {navItems.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className="rounded-full px-3 py-2 font-semibold text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950"
+                      className="tt-nav__link"
                     >
                       {item.label}
                     </Link>
                   ))}
                 </nav>
                 {userEmail ? (
-                  <div className="flex items-center gap-3">
-                    <span className="max-w-48 truncate text-sm font-medium text-zinc-500">
-                      {userEmail}
-                    </span>
+                  <div className="tt-header__actions">
+                    <span className="tt-header__user">{userEmail}</span>
                     <form action={logoutAction}>
                       <Button type="submit" variant="outline" size="sm">
                         로그아웃
@@ -85,7 +82,7 @@ export default async function RootLayout({
                 ) : (
                   <Link
                     href="/login"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+                    className={buttonVariants({ variant: "outline", size: "sm" })}
                   >
                     로그인
                   </Link>

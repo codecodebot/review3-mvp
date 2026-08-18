@@ -3,7 +3,6 @@ import { StarRating } from "@/components/star-rating";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SCORE_EXPLANATION } from "@/lib/constants";
 import type { StoreScoreCache } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 type RawAdjustedScoreBlockProps = {
   score: StoreScoreCache | null;
@@ -32,21 +31,18 @@ function ScoreContent({ score, compact = false }: RawAdjustedScoreBlockProps) {
           : "추가 검토 필요";
 
   return (
-    <div className={cn("space-y-4", compact && "space-y-3")}>
-      <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+    <div className="tt-score-block">
+      <div className="tt-score-block__heading">
         <span>TT Index</span>
         <HelpTooltip label="TT Index">{SCORE_EXPLANATION}</HelpTooltip>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-zinc-200 bg-white px-4 py-3">
-          <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+      <div className="tt-score-pair">
+        <div className="tt-score-tile">
+          <div className="tt-score-label">
             RAW Score
           </div>
           <div
-            className={cn(
-              "mt-2 font-semibold tabular-nums tracking-tight text-zinc-950",
-              compact ? "text-2xl" : "text-4xl"
-            )}
+            className={compact ? "tt-score-value tt-score-value--compact" : "tt-score-value"}
           >
             {formatScore(rawScore)}
           </div>
@@ -55,18 +51,14 @@ function ScoreContent({ score, compact = false }: RawAdjustedScoreBlockProps) {
             size={compact ? "sm" : "md"}
             label="RAW Score"
             color={RAW_STAR_COLOR}
-            className="mt-2"
           />
         </div>
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
-          <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+        <div className="tt-score-tile tt-score-tile--tt">
+          <div className="tt-score-label">
             TT Index
           </div>
           <div
-            className={cn(
-              "mt-2 font-semibold tabular-nums tracking-tight text-zinc-950",
-              compact ? "text-2xl" : "text-4xl"
-            )}
+            className={compact ? "tt-score-value tt-score-value--compact" : "tt-score-value"}
           >
             {formatScore(ttIndex)}
           </div>
@@ -75,16 +67,15 @@ function ScoreContent({ score, compact = false }: RawAdjustedScoreBlockProps) {
             size={compact ? "sm" : "md"}
             label="TT Index"
             color={TT_STAR_COLOR}
-            className="mt-2"
           />
         </div>
       </div>
-      <div className="flex items-center justify-between gap-3 text-xs font-medium text-zinc-500">
+      <div className="tt-score-footer">
         <span>{marketPosition}</span>
         <span>리뷰 {reviewCount}개</span>
       </div>
-      <div className="h-1.5 rounded-full bg-zinc-100">
-        <div className="h-1.5 rounded-full bg-zinc-950" style={{ width: `${scoreWidth}%` }} />
+      <div className="tt-progress">
+        <div className="tt-progress__fill" style={{ width: `${scoreWidth}%` }} />
       </div>
     </div>
   );
@@ -97,7 +88,7 @@ export function RawAdjustedScoreBlock({ score, compact = false }: RawAdjustedSco
 
   return (
     <Card>
-      <CardHeader className="pb-4">
+      <CardHeader>
         <CardTitle>TT Index 모델</CardTitle>
       </CardHeader>
       <CardContent>

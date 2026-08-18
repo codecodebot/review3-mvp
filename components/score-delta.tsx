@@ -22,19 +22,13 @@ export function ScoreDelta({
   const delta = adjustedScore - rawScore;
   const tone =
     delta > 0.05
-      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+      ? "tt-score-delta--positive"
       : delta < -0.05
-        ? "border-amber-200 bg-amber-50 text-amber-800"
-        : "border-zinc-200 bg-zinc-50 text-zinc-700";
+        ? "tt-score-delta--negative"
+        : "tt-score-delta--neutral";
 
   return (
-    <span
-      className={cn(
-        "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold leading-none",
-        tone,
-        className
-      )}
-    >
+    <span className={cn("tt-score-delta", tone, className)}>
       {label} {formatDelta(delta)}
     </span>
   );

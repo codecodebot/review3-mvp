@@ -33,14 +33,14 @@ export function DatabaseSetupNotice({ kind = "database" }: DatabaseSetupNoticePr
   const copy = NOTICE_COPY[kind];
 
   return (
-    <Card className="border-zinc-200/80">
-      <CardHeader className="pb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
+    <Card>
+      <CardHeader>
+        <p className="tt-kicker">
           설정 상태
         </p>
-        <CardTitle className="mt-2">{copy.title}</CardTitle>
+        <CardTitle>{copy.title}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm leading-6 text-zinc-600">
+      <CardContent>
         <p>{copy.body}</p>
         <p>{copy.detail}</p>
       </CardContent>

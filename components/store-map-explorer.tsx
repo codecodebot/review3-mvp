@@ -408,9 +408,11 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
 
   if (!stores.length) {
     return (
-      <section className="rounded-3xl border border-zinc-200 bg-white p-6">
-        <div className="text-sm font-semibold text-zinc-950">전체 지도</div>
-        <div className="mt-4 flex h-[420px] items-center justify-center rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 text-sm text-zinc-500">
+      <section className="tt-map-shell">
+        <div className="tt-map-shell__header">
+          <div className="tt-map-title">전체 지도</div>
+        </div>
+        <div className="tt-empty-state">
           현재 조건에서 지도에 표시할 좌표가 없습니다.
         </div>
       </section>
@@ -418,52 +420,52 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
   }
 
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-[0_18px_48px_rgba(15,23,42,0.06)]">
-      <div className="flex flex-col gap-4 border-b border-zinc-200 bg-white px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex gap-3">
-          <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50 text-zinc-950">
-            <MapPinned className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
+    <section className="tt-map-shell">
+      <div className="tt-map-shell__header">
+        <div className="tt-map-title-row">
+          <div className="tt-map-icon">
+            <MapPinned className="tt-icon-sm" aria-hidden="true" strokeWidth={2} />
           </div>
           <div>
-          <div className="text-sm font-semibold text-zinc-950">인터랙티브 매장 지도</div>
-          <p className="mt-1 max-w-3xl text-xs leading-5 text-zinc-500">
+          <div className="tt-map-title">인터랙티브 매장 지도</div>
+          <p className="tt-map-description">
             현재 필터의 좌표 등록 매장 {stores.length.toLocaleString("ko-KR")}개를 고해상도 지도에 표시합니다.
             드래그로 이동하고 휠로 확대/축소할 수 있습니다.
           </p>
           {mapItems.clusterCount > 0 ? (
-            <p className="mt-1 text-xs font-medium leading-5 text-zinc-600">
+            <p className="tt-map-description">
               가까운 좌표는 {mapItems.clusterCount.toLocaleString("ko-KR")}개 묶음으로 정리했습니다.
             </p>
           ) : null}
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 p-1">
+        <div className="tt-map-controls">
           <button
             type="button"
             onClick={() => updateZoom(zoomOffset - 1)}
             aria-label="지도 축소"
             title="축소"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:bg-zinc-100 hover:text-zinc-950"
+            className="tt-icon-button"
           >
-            <ZoomOut className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
+            <ZoomOut className="tt-icon-sm" aria-hidden="true" strokeWidth={2} />
           </button>
           <button
             type="button"
             onClick={resetView}
             aria-label="지도 전체 보기"
             title="전체 보기"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:bg-zinc-100 hover:text-zinc-950"
+            className="tt-icon-button"
           >
-            <LocateFixed className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
+            <LocateFixed className="tt-icon-sm" aria-hidden="true" strokeWidth={2} />
           </button>
           <button
             type="button"
             onClick={() => updateZoom(zoomOffset + 1)}
             aria-label="지도 확대"
             title="확대"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition hover:bg-zinc-100 hover:text-zinc-950"
+            className="tt-icon-button"
           >
-            <ZoomIn className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
+            <ZoomIn className="tt-icon-sm" aria-hidden="true" strokeWidth={2} />
           </button>
         </div>
       </div>
@@ -478,8 +480,8 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
         onPointerCancel={stopDragging}
         onPointerLeave={stopDragging}
         onWheel={handleWheel}
-        className={`relative h-[560px] touch-none overflow-hidden bg-zinc-100 outline-none ${
-          isDragging ? "cursor-grabbing" : "cursor-grab"
+        className={`tt-map-canvas ${
+          isDragging ? "tt-map-canvas--dragging" : "tt-map-canvas--idle"
         }`}
       >
         {tiles.map((tile) => (
@@ -488,16 +490,16 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
             src={tile.src}
             alt=""
             aria-hidden="true"
-            className="absolute h-64 w-64 select-none"
+            className="tt-map-tile"
             style={{ left: tile.left, top: tile.top }}
             draggable={false}
           />
         ))}
-        <div className="absolute left-3 top-3 z-20 rounded-full border border-zinc-200 bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-zinc-700 shadow-[0_8px_24px_rgba(15,23,42,0.10)] backdrop-blur">
+        <div className="tt-map-count">
           좌표 {stores.length.toLocaleString("ko-KR")}개 · 표시 {mapItems.markerCount.toLocaleString("ko-KR")}개
           {mapItems.clusterCount > 0 ? ` · 묶음 ${mapItems.clusterCount.toLocaleString("ko-KR")}개` : null}
         </div>
-        <div className="absolute inset-0">
+        <div className="tt-map-items">
           {mapItems.items.map((item) => {
             if (item.type === "cluster") {
               const size = getClusterSize(item.count);
@@ -510,7 +512,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
                   title={`${item.count.toLocaleString("ko-KR")}개 매장`}
                   onPointerDown={(event) => event.stopPropagation()}
                   onClick={() => focusCluster(item.stores)}
-                  className="absolute z-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/95 bg-zinc-950/90 text-xs font-semibold tabular-nums text-white shadow-[0_12px_28px_rgba(15,23,42,0.24)] ring-4 ring-white/35 transition hover:scale-105 hover:bg-zinc-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2"
+                  className="tt-map-cluster"
                   style={{ height: size, left: item.left, top: item.top, width: size }}
                 >
                   {item.count.toLocaleString("ko-KR")}
@@ -529,24 +531,25 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
                 title={store.name}
                 onPointerDown={(event) => event.stopPropagation()}
                 onClick={() => setSelectedStoreId(store.id)}
-                className={`group absolute -translate-x-1/2 -translate-y-full outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 ${
-                  isSelected
-                    ? "z-20 h-10 w-8 text-zinc-950 drop-shadow-[0_12px_18px_rgba(15,23,42,0.24)]"
-                    : "z-10 h-6 w-5 text-zinc-900/80 drop-shadow-[0_4px_8px_rgba(15,23,42,0.16)] hover:h-7 hover:w-6 hover:text-zinc-950"
-                }`}
-                style={{ left, top }}
+                className={`tt-map-marker ${isSelected ? "tt-map-marker--selected" : ""}`}
+                style={{
+                  height: isSelected ? 40 : 28,
+                  left,
+                  top,
+                  width: isSelected ? 32 : 24
+                }}
               >
-                <svg viewBox="0 0 28 36" className="h-full w-full" aria-hidden="true">
+                <svg viewBox="0 0 28 36" className="tt-map-marker__pin" aria-hidden="true">
                   <path
                     d="M14 1.6c6.5 0 11.7 5.2 11.7 11.5 0 8.4-9.2 18.3-11.1 20.2a.9.9 0 0 1-1.2 0C11.5 31.4 2.3 21.5 2.3 13.1 2.3 6.8 7.5 1.6 14 1.6Z"
-                    className={isSelected ? "fill-amber-400 stroke-zinc-950" : "fill-white/95 stroke-zinc-900/80"}
+                    className="tt-map-marker__pin-body"
                     strokeWidth="1.6"
                   />
                   <circle
                     cx="14"
                     cy="13"
                     r={isSelected ? "4.2" : "3.6"}
-                    className={isSelected ? "fill-zinc-950" : "fill-zinc-900/80 group-hover:fill-amber-500"}
+                    className="tt-map-marker__pin-dot"
                   />
                 </svg>
               </button>
@@ -554,44 +557,44 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
           })}
         </div>
         {selectedStore ? (
-          <div className="absolute bottom-4 left-4 right-4 max-w-md rounded-3xl border border-zinc-200 bg-white/95 p-4 shadow-[0_18px_48px_rgba(15,23,42,0.16)] backdrop-blur">
-            <div className="space-y-3">
+          <div className="tt-map-popover">
+            <div>
               <div>
-                <div className="mb-2 inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-semibold text-zinc-500">
+                <div className="tt-badge tt-badge--muted">
                   선택된 매장
                 </div>
-                <div className="line-clamp-1 text-sm font-semibold text-zinc-950">{selectedStore.name}</div>
-                <p className="mt-1 text-xs font-medium leading-5 text-zinc-500">
+                <div className="tt-map-popover__title">{selectedStore.name}</div>
+                <p className="tt-map-description">
                   {formatRegionLabel(selectedStore.region)} · {formatCategoryLabel(selectedStore.category)}
                 </p>
                 {selectedStore.address ? (
-                  <p className="mt-2 line-clamp-2 text-xs leading-6 text-zinc-600">{selectedStore.address}</p>
+                  <p className="tt-map-description">{selectedStore.address}</p>
                 ) : null}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="tt-map-popover__actions">
                 <button
                   type="button"
                   onClick={scrollSelectedStoreIntoList}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-zinc-300 bg-white px-3 text-xs font-semibold text-zinc-800 transition hover:border-zinc-400 hover:bg-zinc-50"
+                  className="tt-button tt-button--outline tt-button--sm"
                 >
-                  <ListTree className="h-3.5 w-3.5" aria-hidden="true" />
+                  <ListTree className="tt-icon-sm" aria-hidden="true" />
                   목록에서 보기
                 </button>
                 <Link
                   href={`/stores/${selectedStore.id}#location-map`}
-                  className="inline-flex h-8 items-center rounded-full border border-zinc-300 bg-white px-3 text-xs font-semibold text-zinc-800 transition hover:border-zinc-400 hover:bg-zinc-50"
+                  className="tt-button tt-button--outline tt-button--sm"
                 >
                   상세
                 </Link>
                 <button
                   type="button"
                   onClick={copySelectedStoreAddress}
-                  className="inline-flex h-8 items-center gap-1.5 rounded-full border border-zinc-300 bg-white px-3 text-xs font-semibold text-zinc-800 transition hover:border-zinc-400 hover:bg-zinc-50"
+                  className="tt-button tt-button--outline tt-button--sm"
                 >
                   {copiedStoreId === selectedStore.id ? (
-                    <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden="true" />
+                    <Check className="tt-icon-sm" aria-hidden="true" />
                   ) : (
-                    <Clipboard className="h-3.5 w-3.5" aria-hidden="true" />
+                    <Clipboard className="tt-icon-sm" aria-hidden="true" />
                   )}
                   {copiedStoreId === selectedStore.id ? "복사됨" : "주소 복사"}
                 </button>
@@ -599,7 +602,7 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
             </div>
           </div>
         ) : null}
-        <div className="absolute bottom-2 right-3 rounded-full bg-white/90 px-2 py-1 text-[10px] font-medium text-zinc-500">
+        <div className="tt-map-credit">
           © OpenStreetMap contributors · © CARTO
         </div>
       </div>

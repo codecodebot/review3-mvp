@@ -41,7 +41,7 @@ export default async function StoreReviewPage({ params }: StoreReviewPageProps) 
 
   if (supabaseIssue) {
     return (
-      <div className="container py-8">
+      <div className="tt-container tt-page">
         <DatabaseSetupNotice kind={supabaseIssue} />
       </div>
     );
@@ -52,15 +52,15 @@ export default async function StoreReviewPage({ params }: StoreReviewPageProps) 
   }
 
   return (
-    <div className="container max-w-3xl py-8">
-      <div className="mb-6">
+    <div className="tt-page-narrow tt-page">
+      <div className="tt-page-intro">
         <Link href={`/stores/${store.id}`} className={buttonVariants({ variant: "ghost", size: "sm" })}>
           매장으로 돌아가기
         </Link>
-        <h1 className="mt-4 text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">
+        <h1 className="tt-page-title">
           {store.name} 리뷰 작성
         </h1>
-        <p className="mt-2 text-sm leading-6 text-zinc-500">
+        <p className="tt-lede">
           맛, 서비스, 공간을 따로 평가합니다. 계산된 리뷰 점수가 4.5 이상이면 이유가 필요합니다.
         </p>
       </div>

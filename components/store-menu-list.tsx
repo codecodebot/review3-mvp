@@ -10,47 +10,47 @@ function formatPrice(price: number | null) {
 
 export function StoreMenuList({ menus }: StoreMenuListProps) {
   return (
-    <div className="rounded-3xl border border-zinc-200 bg-white p-5">
-      <div className="flex items-center justify-between gap-4">
+    <div className="tt-menu-card">
+      <div className="tt-menu-card__header">
         <div>
-          <h2 className="text-sm font-semibold text-zinc-950">메뉴</h2>
-          <p className="mt-1 text-xs text-zinc-500">매장에서 제공하는 대표 메뉴입니다.</p>
+          <h2 className="tt-card-title">메뉴</h2>
+          <p className="tt-card-description">매장에서 제공하는 대표 메뉴입니다.</p>
         </div>
-        <span className="rounded-full border border-zinc-200 px-3 py-1 text-xs font-semibold text-zinc-500">
+        <span className="tt-badge tt-badge--muted">
           {menus.length}개
         </span>
       </div>
 
+      <div className="tt-menu-card__content">
       {menus.length ? (
-        <div className="mt-4 divide-y divide-zinc-100">
+        <div className="tt-menu-list">
           {menus.map((menu) => (
-            <div key={menu.id} className="py-4 first:pt-0 last:pb-0">
-              <div className="flex items-start justify-between gap-4">
+            <div key={menu.id} className="tt-menu-item">
                 <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="font-semibold text-zinc-950">{menu.name}</div>
+                  <div className="tt-menu-item__title-row">
+                    <div className="tt-menu-item__title">{menu.name}</div>
                     {menu.is_signature ? (
-                      <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                      <span className="tt-badge tt-badge--warning tt-badge--compact">
                         대표
                       </span>
                     ) : null}
                   </div>
                   {menu.description ? (
-                    <p className="mt-1 text-sm leading-6 text-zinc-500">{menu.description}</p>
+                    <p className="tt-menu-item__description">{menu.description}</p>
                   ) : null}
                 </div>
-                <div className="shrink-0 text-sm font-semibold tabular-nums text-zinc-950">
+                <div className="tt-menu-item__price">
                   {formatPrice(menu.price)}
                 </div>
-              </div>
             </div>
           ))}
         </div>
       ) : (
-        <div className="mt-4 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 p-6 text-center text-sm text-zinc-500">
+        <div className="tt-empty-state">
           아직 등록된 메뉴가 없습니다.
         </div>
       )}
+      </div>
     </div>
   );
 }

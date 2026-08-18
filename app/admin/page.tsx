@@ -17,12 +17,12 @@ export default async function AdminPage() {
 
   if (!isAdmin) {
     return (
-      <div className="container max-w-2xl py-10">
+      <div className="tt-page-narrow tt-page">
         <Card>
           <CardHeader>
             <CardTitle>관리자 권한 필요</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm leading-6 text-muted-foreground">
+          <CardContent>
             관리 도구를 사용하려면 <code>is_admin = true</code>인 프로필로 로그인해야 합니다.
           </CardContent>
         </Card>
@@ -31,21 +31,22 @@ export default async function AdminPage() {
   }
 
   return (
-    <div className="container py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">관리자</h1>
-        <p className="mt-2 text-sm leading-6 text-zinc-500">
+    <div className="tt-container tt-page">
+      <div className="tt-page-hero">
+        <p className="tt-kicker">Dashboard</p>
+        <h1 className="tt-page-title">관리자</h1>
+        <p className="tt-lede">
           신고, 리뷰 표시, 점수 제외, 매장 상태를 관리합니다.
         </p>
       </div>
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="tt-admin-grid">
         {adminLinks.map((item) => (
           <Card key={item.href}>
             <CardHeader>
               <CardTitle>{item.label}</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm leading-6 text-muted-foreground">{item.description}</p>
+            <CardContent>
+              <p>{item.description}</p>
               <Link href={item.href} className={buttonVariants({ variant: "outline", size: "sm" })}>
                 열기
               </Link>

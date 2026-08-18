@@ -169,29 +169,29 @@ function ScoringWeightsPanel({
   ];
 
   return (
-    <Card className="border-zinc-200/80">
-      <CardHeader className="pb-4">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <Card>
+      <CardHeader>
+        <div className="tt-ranking-toolbar">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
+            <p className="tt-kicker">
               Scoring Weights
             </p>
-            <CardTitle className="mt-2">평가 항목 반영 비율</CardTitle>
+            <CardTitle>평가 항목 반영 비율</CardTitle>
           </div>
-          <p className="max-w-xl text-sm leading-6 text-zinc-500">
+          <p className="tt-card-description">
             비율은 자동으로 100%로 정규화됩니다. 설정은 이 브라우저에 저장됩니다.
           </p>
         </div>
       </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="grid gap-4 lg:grid-cols-3">
+      <CardContent>
+        <div className="tt-weights-grid">
           {controls.map((control) => (
-            <div key={control.key} className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <label className="text-sm font-semibold text-zinc-900" htmlFor={control.key}>
+            <div key={control.key} className="tt-weight-control">
+              <div className="tt-weight-control__top">
+                <label className="tt-label" htmlFor={control.key}>
                   {control.label}
                 </label>
-                <span className="text-sm font-semibold tabular-nums text-zinc-950">
+                <span className="tt-weight-control__value">
                   {control.value}%
                 </span>
               </div>
@@ -202,27 +202,27 @@ function ScoringWeightsPanel({
                 max={100}
                 value={control.value}
                 onChange={(event) => updateWeight(control.key, Number(event.target.value))}
-                className="mt-4 h-9 px-0 accent-zinc-950"
+                className="tt-range"
               />
             </div>
           ))}
         </div>
-        <div className="grid gap-3 text-sm text-zinc-600 md:grid-cols-3">
-          <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-            <div className="font-semibold text-zinc-950">최근 리뷰 가중</div>
-            <p className="mt-1 leading-6">
+        <div className="tt-method-grid">
+          <div className="tt-method-chip">
+            <div className="tt-method-chip__title">최근 리뷰 가중</div>
+            <p>
               Half-life {DEFAULT_RECENCY_OPTIONS.halfLifeDays}일 기준으로 최근 리뷰를 더 크게 반영합니다.
             </p>
           </div>
-          <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-            <div className="font-semibold text-zinc-950">구매 인증 가중</div>
-            <p className="mt-1 leading-6">
+          <div className="tt-method-chip">
+            <div className="tt-method-chip__title">구매 인증 가중</div>
+            <p>
               구매 미인증 리뷰는 제외하지 않고 낮은 가중치로 반영합니다.
             </p>
           </div>
-          <div className="rounded-2xl border border-zinc-200 bg-white p-4">
-            <div className="font-semibold text-zinc-950">TT Index 평균선</div>
-            <p className="mt-1 leading-6">
+          <div className="tt-method-chip">
+            <div className="tt-method-chip__title">TT Index 평균선</div>
+            <p>
               모든 매장의 TT Index는 시장 평균 3.0을 중심으로 정렬됩니다.
             </p>
           </div>
@@ -249,7 +249,7 @@ function DashboardSummary({
   const inflationGap = averageRaw - averageTtIndex;
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <div className="tt-metric-grid">
       <MetricCard label="Average TT Index" value={formatScore(averageTtIndex)} helper="시장 평균 3.0 기준" />
       <MetricCard label="Average RAW Score" value={formatScore(rawAverage)} helper="최근·구매인증 가중 적용" />
       <MetricCard label="Inflation Gap" value={formatSigned(inflationGap)} helper="RAW와 TT 평균 차이" />
@@ -270,28 +270,28 @@ function TopStoreBrief({
   const primaryScore = sortMetric === "raw-score" ? store.rawScore : store.normalizedScore;
 
   return (
-    <Card className="overflow-hidden border-zinc-200/80 bg-zinc-950 text-white">
-      <CardContent className="grid gap-6 p-6 lg:grid-cols-[1fr_280px] lg:items-center">
+    <Card className="tt-leader-card">
+      <CardContent>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400">
+          <p className="tt-kicker">
             Current Leader
           </p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+          <h2 className="tt-section-title">
             #1 {store.name}
           </h2>
-          <p className="mt-2 text-sm leading-6 text-zinc-300">
+          <p className="tt-card-description">
             현재 선택한 {sortLabel} 기준으로 가장 높은 매장입니다. RAW Score와 TT Index는 항상 함께
             비교할 수 있습니다.
           </p>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-          <div className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-400">
+        <div className="tt-leader-card__score">
+          <div className="tt-kicker">
             {sortLabel}
           </div>
-          <div className="mt-2 text-5xl font-semibold tabular-nums tracking-tight text-white">
+          <div className="tt-leader-card__value">
             {formatScore(primaryScore)}
           </div>
-          <div className="mt-3 flex justify-between text-sm text-zinc-300">
+          <div className="tt-leader-card__meta">
             <span>RAW Score {formatScore(store.rawScore)}</span>
             <span>평균 대비 {formatSigned(store.rawAverageDelta)}</span>
           </div>
@@ -306,26 +306,27 @@ function ScoreComparisonChart({ stores }: { stores: RankedStore[] }) {
 
   return (
     <Card>
-      <CardHeader className="pb-4">
+      <CardHeader>
         <CardTitle>RAW Score와 TT Index 비교</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
+        <div className="tt-comparison-chart">
         {previewStores.map((store) => (
-          <div key={store.id} className="grid gap-2 sm:grid-cols-[minmax(160px,1fr)_2fr]">
+          <div key={store.id} className="tt-chart-row">
             <div>
-              <div className="truncate text-sm font-semibold text-zinc-950">{store.name}</div>
-              <div className="text-xs text-zinc-500">TT {formatScore(store.normalizedScore)}</div>
+              <div className="tt-chart-title">{store.name}</div>
+              <div className="tt-chart-sub">TT {formatScore(store.normalizedScore)}</div>
             </div>
-            <div className="space-y-2">
-              <div className="h-1.5 rounded-full bg-zinc-100">
+            <div className="tt-chart-bars">
+              <div className="tt-chart-track">
                 <div
-                  className="h-1.5 rounded-full bg-zinc-400"
+                  className="tt-chart-fill"
                   style={{ width: `${Math.max(0, Math.min(100, (store.rawScore / 5) * 100))}%` }}
                 />
               </div>
-              <div className="h-1.5 rounded-full bg-zinc-100">
+              <div className="tt-chart-track">
                 <div
-                  className="h-1.5 rounded-full bg-zinc-950"
+                  className="tt-chart-fill tt-chart-fill--tt"
                   style={{
                     width: `${Math.max(0, Math.min(100, (store.normalizedScore / 5) * 100))}%`
                   }}
@@ -334,15 +335,16 @@ function ScoreComparisonChart({ stores }: { stores: RankedStore[] }) {
             </div>
           </div>
         ))}
-        <div className="flex gap-4 text-xs font-medium text-zinc-500">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-4 rounded-full bg-zinc-400" />
+        <div className="tt-chart-legend">
+          <span>
+            <i aria-hidden="true" />
             RAW Score
           </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-4 rounded-full bg-zinc-950" />
+          <span>
+            <i aria-hidden="true" />
             TT Index
           </span>
+        </div>
         </div>
       </CardContent>
     </Card>
@@ -359,29 +361,29 @@ function MethodologyCard() {
 
   return (
     <Card>
-      <CardHeader className="pb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
+      <CardHeader>
+        <p className="tt-kicker">
           Methodology
         </p>
-        <CardTitle className="mt-2">Trusttable 점수 계산 방식</CardTitle>
+        <CardTitle>Trusttable 점수 계산 방식</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 font-mono text-sm leading-6 text-zinc-800">
+      <CardContent>
+        <div className="tt-formula">
           TT Index = Store RAW Score - Market Average RAW Score + 3.0
           <br />
           RAW Score includes recency, purchase verification, and reliability weights
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="tt-chip-row" style={{ marginTop: 16 }}>
           {labels.map((label) => (
             <div
               key={label}
-              className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700"
+              className="tt-badge tt-badge--muted"
             >
               {label}
             </div>
           ))}
         </div>
-        <p className="text-sm leading-6 text-zinc-500">
+        <p className="tt-card-description" style={{ marginTop: 16 }}>
           Trusttable은 RAW Score를 숨기지 않습니다. RAW Score를 먼저 계산한 뒤 전체 매장 평균을
           기준으로 3.0 주변에 정렬합니다.
         </p>
@@ -420,9 +422,9 @@ export function RankingTable({ stores }: RankingTableProps) {
 
   if (!rankedStores.length) {
     return (
-      <div className="space-y-6">
+      <div className="tt-rank-layout">
         <ScoringWeightsPanel weights={weights} onChange={setWeights} />
-        <div className="rounded-2xl border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500">
+        <div className="tt-empty-state">
           아직 랭킹에 표시할 만큼 리뷰가 충분한 매장이 없습니다.
         </div>
       </div>
@@ -432,44 +434,43 @@ export function RankingTable({ stores }: RankingTableProps) {
   const leader = rankedStores[0];
 
   return (
-    <div className="space-y-6">
+    <div className="tt-rank-layout">
       <TopStoreBrief store={leader} sortMetric={sortMetric} />
       <DashboardSummary stores={rankedStores} rawAverage={rawAverage} />
       <ScoringWeightsPanel weights={weights} onChange={setWeights} />
-      <div className="grid gap-6 xl:grid-cols-[1fr_420px]">
-        <div className="space-y-3">
-          <div className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:flex-row sm:items-end sm:justify-between">
+      <div className="tt-side-layout">
+        <div className="tt-stack">
+          <div className="tt-ranking-toolbar">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              <p className="tt-kicker">
                 Store Ranking
               </p>
-              <h2 className="mt-2 text-xl font-semibold tracking-tight text-zinc-950">
+              <h2 className="tt-section-title">
                 {sortLabel} 기준 상위 매장
               </h2>
-              <p className="mt-2 text-sm leading-6 text-zinc-500">
+              <p className="tt-card-description">
                 TT Index와 RAW Score를 모두 보여주되, 선택한 기준으로 순위를 다시 정렬합니다.
               </p>
             </div>
-            <label className="w-full space-y-2 sm:w-56">
-              <span className="text-xs font-semibold text-zinc-500">정렬 기준</span>
+            <label className="tt-field tt-ranking-toolbar__select">
+              <span className="tt-label">정렬 기준</span>
               <Select
                 value={sortMetric}
                 onChange={(event) => setSortMetric(event.target.value as RankingSortMetric)}
                 aria-label="랭킹 정렬 기준"
-                className="rounded-full bg-white font-semibold"
               >
                 <option value="tt-index">TT Index</option>
                 <option value="raw-score">RAW Score</option>
               </Select>
             </label>
           </div>
-          <div className="space-y-3">
+          <div className="tt-stack">
             {rankedStores.map((store, index) => (
               <StoreRankCard key={store.id} store={store} rank={index + 1} weights={weights} />
             ))}
           </div>
         </div>
-        <aside className="space-y-6">
+        <aside className="tt-stack">
           <ScoreComparisonChart stores={rankedStores} />
           <MethodologyCard />
         </aside>

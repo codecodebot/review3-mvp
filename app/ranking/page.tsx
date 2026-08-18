@@ -25,21 +25,21 @@ export default async function RankingPage() {
   }
 
   return (
-    <div className="container py-8 sm:py-12">
-      <div className="mb-8 rounded-3xl border border-zinc-200/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.035)] sm:p-8">
-        <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+    <div className="tt-container tt-page">
+      <section className="tt-page-hero">
+        <div className="tt-page-hero__content">
+          <p className="tt-kicker">
             Trusttable Ranking Console
           </p>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-zinc-950 sm:text-5xl">
+          <h1 className="tt-page-title">
             부풀려진 별점을 TT Index로 다시 해석해 신뢰 가능한 매장 순위를 보여줍니다.
           </h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-zinc-600">
+          <p className="tt-lede">
             RAW Score, TT Index, 구매 인증 가중치, 최근 리뷰 상승 신호를 한 화면에서 비교합니다.
             점수는 숨기지 않고 왜 바뀌었는지 함께 설명합니다.
           </p>
         </div>
-      </div>
+      </section>
       {supabaseIssue ? <DatabaseSetupNotice kind={supabaseIssue} /> : <RankingTable stores={stores} />}
     </div>
   );

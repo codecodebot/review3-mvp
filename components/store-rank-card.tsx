@@ -7,7 +7,6 @@ import { VerificationBadge } from "@/components/verification-badge";
 import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
 import { calculateReviewScore, type ScoreWeights } from "@/lib/scoring";
 import type { StoreWithScoreAndReviews } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 type StoreRankCardData = StoreWithScoreAndReviews & {
   rawScore: number;
@@ -66,11 +65,11 @@ function MiniTrend({ store, weights }: StoreRankCardProps) {
     .slice(-8);
 
   if (!reviews.length) {
-    return <div className="h-9 rounded-xl bg-zinc-50" aria-hidden />;
+    return <div className="tt-mini-trend tt-mini-trend--empty" aria-hidden />;
   }
 
   return (
-    <div className="flex h-9 items-end gap-1.5" aria-label="최근 리뷰 점수 추이">
+    <div className="tt-mini-trend" aria-label="최근 리뷰 점수 추이">
       {reviews.map((review, index) => {
         const score = calculateReviewScore(
           review.taste_score,
@@ -83,10 +82,7 @@ function MiniTrend({ store, weights }: StoreRankCardProps) {
         return (
           <span
             key={`${review.store_id}-${review.created_at ?? index}-${index}`}
-            className={cn(
-              "block w-2.5 rounded-full",
-              review.purchase_verified === false ? "bg-zinc-300" : "bg-zinc-900"
-            )}
+            className={review.purchase_verified === false ? "tt-trend-bar tt-trend-bar--muted" : "tt-trend-bar"}
             style={{ height: `${height}%` }}
             title={`${score.toFixed(2)}점${review.purchase_verified === false ? " · 구매 미인증" : ""}`}
           />
@@ -98,52 +94,50 @@ function MiniTrend({ store, weights }: StoreRankCardProps) {
 
 export function StoreRankCard({ store, rank, weights }: StoreRankCardProps) {
   return (
-    <article className="group rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.035)] transition hover:border-zinc-300 hover:shadow-[0_16px_40px_rgba(15,23,42,0.07)]">
-      <div className="grid gap-5 lg:grid-cols-[72px_minmax(0,1fr)_300px] lg:items-center">
-        <div className="flex items-center gap-3 lg:block">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-zinc-200 bg-zinc-50 text-sm font-semibold tabular-nums text-zinc-950">
+    <article className="tt-rank-card">
+      <div className="tt-rank-card__grid">
+        <div className="tt-rank-card__rank">
+          <div className="tt-rank-number">
             #{rank}
           </div>
-          <div className="lg:mt-3">
-            <MiniTrend store={store} rank={rank} weights={weights} />
-          </div>
+          <MiniTrend store={store} rank={rank} weights={weights} />
         </div>
 
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="tt-rank-card__body">
+          <div className="tt-rank-title-row">
             <Link
               href={`/stores/${store.id}`}
-              className="truncate text-lg font-semibold tracking-normal text-zinc-950 hover:text-zinc-700"
+              className="tt-rank-title"
             >
               {store.name}
             </Link>
             <RisingBadge rising={store.rising} compact />
           </div>
-          <p className="mt-1 text-sm font-medium text-zinc-500">
+          <p className="tt-store-meta">
             {formatRegionLabel(store.region)} · {formatCategoryLabel(store.category)}
           </p>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600">
+          <p className="tt-rank-explanation">
             {scoreExplanation(store)}
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="tt-chip-row" style={{ marginTop: 14 }}>
             <VerificationBadge status={store.verification_status} />
             <TrustBadge level={store.score?.trust_level} />
-            <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-semibold leading-none text-zinc-700">
+            <span className="tt-badge tt-badge--muted">
               리뷰 {store.score?.review_count ?? 0}개
             </span>
-            <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[11px] font-semibold leading-none text-zinc-700">
+            <span className="tt-badge tt-badge--muted">
               재방문 {formatPercent(store.score?.revisit_rate)}
             </span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4">
-          <div className="grid grid-cols-2 gap-3">
+        <div className="tt-rank-score-panel">
+          <div className="tt-rank-score-grid">
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+              <div className="tt-score-label">
                 RAW Score
               </div>
-              <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-zinc-950">
+              <div className="tt-rank-score-value">
                 {formatScore(store.rawScore)}
               </div>
               <StarRating
@@ -151,14 +145,13 @@ export function StoreRankCard({ store, rank, weights }: StoreRankCardProps) {
                 size="sm"
                 label="RAW Score"
                 color={RAW_STAR_COLOR}
-                className="mt-2"
               />
             </div>
             <div>
-              <div className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+              <div className="tt-score-label">
                 TT Index
               </div>
-              <div className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-zinc-950">
+              <div className="tt-rank-score-value">
                 {formatScore(store.normalizedScore)}
               </div>
               <StarRating
@@ -166,17 +159,16 @@ export function StoreRankCard({ store, rank, weights }: StoreRankCardProps) {
                 size="sm"
                 label="TT Index"
                 color={TT_STAR_COLOR}
-                className="mt-2"
               />
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-medium text-zinc-500">
+          <div className="tt-rank-score-footer">
             <ScoreDelta adjustedScore={store.normalizedScore} rawScore={store.rawScore} />
             <span>시장 평균 대비 {formatDelta(store.rawAverageDelta)}</span>
           </div>
-          <div className="mt-3 h-1.5 rounded-full bg-zinc-200">
+          <div className="tt-progress" style={{ marginTop: 12 }}>
             <div
-              className="h-1.5 rounded-full bg-zinc-950"
+              className="tt-progress__fill"
               style={{
                 width: `${Math.max(0, Math.min(100, ((store.normalizedScore - 1) / 4) * 100))}%`
               }}

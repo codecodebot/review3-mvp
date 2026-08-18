@@ -10,24 +10,12 @@ type StarRatingProps = {
   className?: string;
 };
 
-const sizeClass = {
-  sm: "h-4 w-4",
-  md: "h-5 w-5",
-  lg: "h-6 w-6"
-} satisfies Record<NonNullable<StarRatingProps["size"]>, string>;
-
-const gapClass = {
-  sm: "gap-0.5",
-  md: "gap-1",
-  lg: "gap-1"
-} satisfies Record<NonNullable<StarRatingProps["size"]>, string>;
-
 function StarIcon({ className, color }: { className?: string; color?: string }) {
   return (
     <svg
       aria-hidden="true"
       viewBox="0 0 24 24"
-      className={className}
+      className={cn("tt-stars__svg", className)}
       fill="currentColor"
       style={color ? { color } : undefined}
       xmlns="http://www.w3.org/2000/svg"
@@ -52,11 +40,11 @@ export function StarRating({
 
   return (
     <div
-      className={cn("inline-flex items-center gap-2", className)}
+      className={cn("tt-stars", `tt-stars--${size}`, className)}
       role="img"
       aria-label={`${label} ${safeValue.toFixed(2)}점, ${safeMax}점 만점`}
     >
-      <div className={cn("flex items-center", gapClass[size])}>
+      <div className="tt-stars__row">
         {Array.from({ length: safeMax }, (_, index) => {
           let fillPercent = 0;
 
@@ -67,21 +55,21 @@ export function StarRating({
           }
 
           return (
-            <span key={index} className={cn("relative inline-block shrink-0", sizeClass[size])}>
-              <StarIcon className="absolute inset-0 h-full w-full text-zinc-200" />
+            <span key={index} className="tt-stars__slot">
+              <StarIcon />
               <span
-                className="absolute inset-0 overflow-hidden"
+                className="tt-stars__fill"
                 style={{ width: `${fillPercent}%` }}
                 aria-hidden="true"
               >
-                <StarIcon className={sizeClass[size]} color={color} />
+                <StarIcon color={color} />
               </span>
             </span>
           );
         })}
       </div>
       {showValue ? (
-        <span className="font-semibold tabular-nums leading-none text-zinc-950">
+        <span className="tt-stars__value">
           {safeValue.toFixed(2)}
         </span>
       ) : null}

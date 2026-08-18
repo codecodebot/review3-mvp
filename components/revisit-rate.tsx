@@ -33,12 +33,12 @@ export function RevisitRateDetail({ score }: RevisitRateValueProps) {
       : null;
 
   return (
-    <div className="space-y-1">
-      <div className="flex items-center gap-1.5 font-medium">
+    <div className="tt-revisit">
+      <div className="tt-revisit__top">
         <RevisitRateValue score={score} />
         <HelpTooltip label="재방문 리뷰어">{REVISIT_RATE_EXPLANATION}</HelpTooltip>
       </div>
-      {reviewerCounts ? <div className="text-xs text-muted-foreground">{reviewerCounts}</div> : null}
+      {reviewerCounts ? <div className="tt-revisit__count">{reviewerCounts}</div> : null}
     </div>
   );
 }

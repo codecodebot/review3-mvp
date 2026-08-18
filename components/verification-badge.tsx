@@ -20,14 +20,14 @@ function verificationLabel(value: string) {
 
 function verificationClass(value: string) {
   if (value === "verified") {
-    return "border-emerald-200 bg-emerald-50 text-emerald-800";
+    return "tt-badge--verification-verified";
   }
 
   if (value === "rejected") {
-    return "border-red-200 bg-red-50 text-red-800";
+    return "tt-badge--verification-rejected";
   }
 
-  return "border-zinc-200 bg-zinc-50 text-zinc-600";
+  return "tt-badge--muted";
 }
 
 export function VerificationBadge({ status, className }: VerificationBadgeProps) {

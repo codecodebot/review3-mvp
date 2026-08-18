@@ -51,7 +51,7 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
 
   if (supabaseIssue) {
     return (
-      <div className="container py-8">
+      <div className="tt-container tt-page">
         <DatabaseSetupNotice kind={supabaseIssue} />
       </div>
     );
@@ -67,24 +67,26 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
   const sectionMismatchRate = reviews.length ? (sectionMismatchCount / reviews.length) * 100 : 0;
 
   return (
-    <div className="container py-8">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-3">
+    <div className="tt-container tt-page">
+      <header className="tt-page-hero">
+        <div className="tt-detail-header">
+        <div className="tt-detail-heading">
           <div>
-            <h1 className="text-2xl font-bold tracking-normal text-zinc-950 sm:text-3xl">
+            <p className="tt-kicker">Store Profile</p>
+            <h1 className="tt-detail-title">
               {store.name}
             </h1>
             {store.rising?.isRising ? (
-              <div className="mt-2">
+              <div style={{ marginTop: 10 }}>
                 <RisingStoreBadge rising={store.rising} />
               </div>
             ) : null}
-            <p className="mt-2 text-sm font-medium text-zinc-500">
+            <p className="tt-store-meta">
               {formatRegionLabel(store.region)} · {formatCategoryLabel(store.category)}
               {store.address ? ` · ${store.address}` : ""}
             </p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="tt-chip-row">
             <VerificationBadge status={store.verification_status} />
             <TrustBadge level={store.score?.trust_level} />
           </div>
@@ -93,55 +95,53 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
           리뷰 작성
         </Link>
       </div>
+      </header>
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
+      <div className="tt-detail-layout">
         <RawAdjustedScoreBlock score={store.score} />
         <Card>
           <CardHeader>
             <CardTitle>점수 상세</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3">
+          <CardContent>
+            <div className="tt-score-detail-grid">
               <ScoreBadge label="맛" value={store.score?.taste_score} />
               <ScoreBadge label="서비스" value={store.score?.service_score} />
               <ScoreBadge label="분위기" value={store.score?.environment_score} />
             </div>
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="tt-inline-stat-grid" style={{ marginTop: 18 }}>
               <div>
-                <div className="text-muted-foreground">리뷰 수</div>
-                <div className="font-medium">{store.score?.review_count ?? 0}</div>
+                <div className="tt-inline-stat__label">리뷰 수</div>
+                <div className="tt-inline-stat__value">{store.score?.review_count ?? 0}</div>
               </div>
               <div>
-                <div className="text-muted-foreground">재방문 리뷰어</div>
+                <div className="tt-inline-stat__label">재방문 리뷰어</div>
                 <RevisitRateDetail score={store.score} />
               </div>
               <div>
-                <div className="text-muted-foreground">시장 평균 RAW</div>
-                <div className="font-medium">
+                <div className="tt-inline-stat__label">시장 평균 RAW</div>
+                <div className="tt-inline-stat__value">
                   {store.score?.peer_average_raw_score.toFixed(2) ?? "없음"}
                 </div>
               </div>
               <div>
-                <div className="text-muted-foreground">TT Index</div>
-                <div className="font-medium">{store.score?.ranking_score.toFixed(2) ?? "없음"}</div>
+                <div className="tt-inline-stat__label">TT Index</div>
+                <div className="tt-inline-stat__value">{store.score?.ranking_score.toFixed(2) ?? "없음"}</div>
               </div>
             </div>
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4 text-sm">
-              <div className="font-semibold text-zinc-950">리뷰 신호</div>
-              <div className="mt-2 space-y-1 text-zinc-700">
+            <div className="tt-review-signal" style={{ marginTop: 18 }}>
+              <div className="tt-review-signal__title">리뷰 신호</div>
+              <div className="tt-review-signal__list">
                 <div>
                   입력 항목 검토 필요 리뷰 {sectionMismatchCount}개
-                  <span className="text-zinc-500"> · 전체 리뷰 대비 {sectionMismatchRate.toFixed(1)}%</span>
+                  <span> · 전체 리뷰 대비 {sectionMismatchRate.toFixed(1)}%</span>
                 </div>
                 <div>
                   점수-내용 불일치 리뷰 {ratingTextMismatchCount}개
-                  <span className="text-zinc-500">
-                    {" "}
-                    · 전체 리뷰 대비 {ratingTextMismatchRate.toFixed(1)}%
-                  </span>
+                  <span> · 전체 리뷰 대비 {ratingTextMismatchRate.toFixed(1)}%</span>
                 </div>
               </div>
-              <p className="mt-2 text-xs leading-5 text-zinc-500">
+              <p className="tt-review-signal__note">
                 이 신호는 매장 평가를 직접 확정하지 않고, 리뷰 내용을 더 살펴볼 수 있게 돕는 참고 지표입니다.
               </p>
             </div>
@@ -149,24 +149,24 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
         </Card>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_360px]">
+      <div className="tt-detail-map-layout" style={{ marginTop: 20 }}>
         <StoreMap store={store} />
         <StoreMenuList menus={menus} />
       </div>
 
-      <section className="mt-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-normal text-zinc-950">리뷰</h2>
-          <span className="text-sm font-medium text-zinc-500">표시 중 {reviews.length}개</span>
+      <section>
+        <div className="tt-section-header">
+          <h2 className="tt-section-title">리뷰</h2>
+          <span className="tt-section-count">표시 중 {reviews.length}개</span>
         </div>
         {reviews.length ? (
-          <div className="grid gap-4">
+          <div className="tt-review-list">
             {reviews.map((review) => (
               <ReviewCard key={review.id} review={review} />
             ))}
           </div>
         ) : (
-          <div className="rounded-lg border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500">
+          <div className="tt-empty-state">
             아직 표시할 리뷰가 없습니다.
           </div>
         )}

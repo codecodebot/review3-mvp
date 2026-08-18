@@ -4,8 +4,6 @@ import { ArrowRight } from "lucide-react";
 import { MetricCard } from "@/components/metric-card";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
 
 type HomePageProps = {
   searchParams?: {
@@ -24,40 +22,40 @@ export default function HomePage({ searchParams }: HomePageProps) {
   const authRequired = searchParams?.auth === "required";
 
   return (
-    <div className="container py-8 sm:py-12">
-      <section className="overflow-hidden rounded-3xl border border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.035)]">
-        <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:p-10">
-          <div className="space-y-7">
+    <div className="tt-container tt-page">
+      <section className="tt-hero">
+        <div className="tt-hero__grid">
+          <div className="tt-hero__copy">
             {authRequired ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
+              <div className="tt-alert">
                 리뷰를 작성하려면 먼저 로그인해야 합니다.
               </div>
             ) : null}
 
-            <div className="space-y-5">
+            <div className="tt-hero__copy">
               <Image
                 src="/brand/trusttable-logo.png"
                 alt="Trusttable"
                 width={180}
                 height={180}
                 priority
-                className="h-12 w-auto object-contain"
+                className="tt-logo-large"
               />
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              <p className="tt-kicker">
                 Review Trust Infrastructure
               </p>
-              <h1 className="max-w-4xl text-4xl font-semibold leading-tight tracking-tight text-zinc-950 sm:text-6xl">
+              <h1 className="tt-title">
                 부풀려진 별점을 신뢰 가능한 지표로 다시 계산합니다.
               </h1>
-              <p className="max-w-2xl text-base leading-7 text-zinc-600">
+              <p className="tt-lede">
                 Trusttable은 RAW Score를 숨기지 않고, 구매 인증·최근 리뷰 흐름·리뷰어 신뢰 패턴을
                 반영해 TT Index를 계산하는 리뷰 신뢰 분석 대시보드입니다.
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
-              <Link href="/ranking" className={cn(buttonVariants({ size: "lg" }), "gap-2")}>
-                랭킹 대시보드 보기 <ArrowRight className="h-4 w-4" />
+            <div className="tt-actions">
+              <Link href="/ranking" className={buttonVariants({ size: "lg" })}>
+                랭킹 대시보드 보기 <ArrowRight className="tt-icon-sm" aria-hidden="true" />
               </Link>
               <Link href="/stores" className={buttonVariants({ variant: "outline", size: "lg" })}>
                 매장 데이터 보기
@@ -65,7 +63,7 @@ export default function HomePage({ searchParams }: HomePageProps) {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="tt-hero__visual">
             <RawAdjustedScoreBlock
               score={{
                 store_id: "demo",
@@ -85,7 +83,7 @@ export default function HomePage({ searchParams }: HomePageProps) {
                 updated_at: new Date().toISOString()
               }}
             />
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="tt-score-pair">
               <MetricCard label="RAW Score" value="4.42" helper="사용자 리뷰 원래 평균" />
               <MetricCard label="TT Index" value="3.34" helper="시장 평균선 3.0 기준" />
             </div>
@@ -93,45 +91,42 @@ export default function HomePage({ searchParams }: HomePageProps) {
         </div>
       </section>
 
-      <section className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <section className="tt-signal-grid">
         {trustSignals.map((signal) => (
-          <div
-            key={signal}
-            className="rounded-2xl border border-zinc-200/80 bg-white p-5 text-sm font-semibold text-zinc-800 shadow-[0_1px_2px_rgba(15,23,42,0.035)]"
-          >
+          <div key={signal} className="tt-signal-card">
             {signal}
           </div>
         ))}
       </section>
 
-      <section className="mt-8 grid gap-4 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>RAW Score와 TT Index 동시 공개</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm leading-6 text-zinc-600">
+      <section className="tt-info-grid">
+        <article className="tt-card">
+          <div className="tt-card-header">
+            <h3 className="tt-card-title">RAW Score와 TT Index 동시 공개</h3>
+          </div>
+          <div className="tt-card-content">
             Trusttable은 RAW Score를 숨기지 않습니다. TT Index가 왜 달라졌는지 RAW Score와 함께
             비교할 수 있게 보여줍니다.
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>검증되지 않은 리뷰는 낮은 가중치</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm leading-6 text-zinc-600">
+          </div>
+        </article>
+        <article className="tt-card">
+          <div className="tt-card-header">
+            <h3 className="tt-card-title">검증되지 않은 리뷰는 낮은 가중치</h3>
+          </div>
+          <div className="tt-card-content">
             구매 미인증 리뷰는 제외하지 않고 낮은 가중치로 반영합니다. 신뢰도 신호는 점수 설명과
             함께 투명하게 노출됩니다.
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>최근 상승 매장 감지</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm leading-6 text-zinc-600">
+          </div>
+        </article>
+        <article className="tt-card">
+          <div className="tt-card-header">
+            <h3 className="tt-card-title">최근 상승 매장 감지</h3>
+          </div>
+          <div className="tt-card-content">
             최근 30일 리뷰가 과거 평균보다 충분히 높고 표본 수가 확보된 매장만 떠오르는 매장으로
             표시합니다.
-          </CardContent>
-        </Card>
+          </div>
+        </article>
       </section>
     </div>
   );
