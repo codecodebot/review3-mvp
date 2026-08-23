@@ -63,44 +63,33 @@ body {
 .tt-wordmark {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   color: var(--tt-ink);
 }
 
 .tt-wordmark__symbol {
-  position: relative;
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  color: var(--tt-ink);
+}
+
+.tt-wordmark__symbol svg {
   display: block;
-  width: 32px;
-  height: 32px;
-  overflow: hidden;
-  border: 1px solid var(--tt-border-strong);
-  border-radius: 8px;
-  background: #ffffff;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
 }
 
-.tt-wordmark__asset {
-  position: absolute;
-  top: -17px;
-  left: -19px;
-  width: 70px;
-  height: 70px;
-  max-width: none;
-  object-fit: cover;
-}
-
-.tt-wordmark__symbol::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 8px;
-  background: #ffffff;
-  content: "";
+.tt-wordmark__symbol .tt-wordmark__signal {
+  fill: var(--tt-accent);
 }
 
 .tt-wordmark__text {
-  font-size: 17px;
-  font-weight: 760;
+  font-size: 18px;
+  font-weight: 730;
   line-height: 1;
 }
 
