@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, ClipboardCheck, Search, SlidersHorizontal } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
@@ -22,6 +23,15 @@ export default function HomePage({ searchParams }: HomePageProps) {
   return (
     <div className="tt-container tt-page">
       <section className="tt-home-hero">
+        <Image
+          src="/brand/trusttable-analysis-hero.png"
+          alt=""
+          fill
+          priority
+          sizes="(max-width: 760px) 100vw, 1180px"
+          className="tt-home-hero__image"
+        />
+        <div className="tt-home-hero__wash" aria-hidden="true" />
         <div className="tt-hero__grid">
           <div className="tt-hero__copy">
             {authRequired ? (
