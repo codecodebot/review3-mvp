@@ -1,5 +1,5 @@
-import { PageSkeleton } from "@/components/ui/page-skeleton";
+import { ReportPageSkeleton } from "@/components/ui/report-page-skeleton";
 
 export default function StoreDetailLoading() {
-  return <PageSkeleton variant="store-detail" />;
+  return <ReportPageSkeleton variant="store-detail" message="매장 리뷰 근거를 불러오는 중" />;
 }

@@ -1,3 +1,4 @@
+import { BadgeCheck, CircleDashed, ShieldAlert } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -32,9 +33,11 @@ function verificationClass(value: string) {
 
 export function VerificationBadge({ status, className }: VerificationBadgeProps) {
   const value = status ?? "pending";
+  const Icon = value === "verified" ? BadgeCheck : value === "rejected" ? ShieldAlert : CircleDashed;
 
   return (
     <Badge variant="outline" className={cn(verificationClass(value), className)}>
+      <Icon aria-hidden="true" />
       {verificationLabel(value)}
     </Badge>
   );

@@ -1,3 +1,4 @@
+import { CircleHelp, ShieldCheck, ShieldEllipsis, ShieldX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -57,9 +58,17 @@ function trustClass(level: string) {
 
 export function TrustBadge({ level, trustScore, className }: TrustBadgeProps) {
   const resolvedLevel = level ?? levelFromScore(trustScore);
+  const Icon = resolvedLevel === "high"
+    ? ShieldCheck
+    : resolvedLevel === "medium"
+      ? ShieldEllipsis
+      : resolvedLevel === "low"
+        ? ShieldX
+        : CircleHelp;
 
   return (
     <Badge variant="outline" className={cn(trustClass(resolvedLevel), className)}>
+      <Icon aria-hidden="true" />
       {trustLabel(resolvedLevel)}
     </Badge>
   );

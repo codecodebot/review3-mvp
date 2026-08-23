@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Search } from "lucide-react";
 import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import { StoreCard } from "@/components/store-card";
 import { StoreMapExplorer } from "@/components/store-map-explorer";
@@ -70,18 +71,16 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
 
   return (
     <div className="tt-container tt-page tt-page--wide">
-      <section className="tt-page-hero">
+      <section className="tt-page-hero tt-discovery-header">
         <div className="tt-page-hero__content">
           <div className="tt-detail-header">
             <div>
-              <p className="tt-kicker">
-                Store Intelligence
-              </p>
+              <p className="tt-kicker">Discovery report</p>
               <h1 className="tt-page-title">
-                매장별 신뢰 점수 현황
+                조건에 맞는 매장을 근거와 함께 찾습니다
               </h1>
               <p className="tt-lede">
-                매장명과 주소를 검색하고, 지역과 카테고리별로 RAW Score, TT Score, 인증 상태를 한 화면에서 비교합니다.
+                지역과 카테고리별로 TT Index, RAW Score, 인증 상태와 근거 수준을 비교합니다.
               </p>
             </div>
             <Link
@@ -129,7 +128,7 @@ export default async function StoresPage({ searchParams }: StoresPageProps) {
                   ))}
                 </Select>
               </div>
-              <Button type="submit">검색</Button>
+              <Button type="submit"><Search className="tt-icon-sm" aria-hidden="true" /> 검색</Button>
             </div>
           </form>
 

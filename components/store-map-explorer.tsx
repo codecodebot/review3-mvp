@@ -54,6 +54,10 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
+function roundPixel(value: number) {
+  return Math.round(value * 1000) / 1000;
+}
+
 function lngToWorldX(lng: number, zoom: number) {
   return ((lng + 180) / 360) * TILE_SIZE * 2 ** zoom;
 }
@@ -210,8 +214,8 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
         nextTiles.push({
           key: `${zoom}-${x}-${y}`,
           src: tileUrl(x, y, zoom),
-          left: x * TILE_SIZE - topLeft.x,
-          top: y * TILE_SIZE - topLeft.y
+          left: roundPixel(x * TILE_SIZE - topLeft.x),
+          top: roundPixel(y * TILE_SIZE - topLeft.y)
         });
       }
     }
@@ -226,8 +230,8 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
 
         return {
           store,
-          left: point.x - topLeft.x,
-          top: point.y - topLeft.y
+          left: roundPixel(point.x - topLeft.x),
+          top: roundPixel(point.y - topLeft.y)
         };
       }),
     [stores, topLeft.x, topLeft.y, zoom]
@@ -288,9 +292,9 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
         const point = projectPoint(store.lat, store.lng, zoom);
         items.push({
           key: store.id,
-          left: point.x - topLeft.x,
+          left: roundPixel(point.x - topLeft.x),
           store,
-          top: point.y - topLeft.y,
+          top: roundPixel(point.y - topLeft.y),
           type: "marker"
         });
         return;
@@ -299,9 +303,9 @@ export function StoreMapExplorer({ stores }: StoreMapExplorerProps) {
       items.push({
         count: bucket.stores.length,
         key: `cluster-${zoom}-${key}`,
-        left: bucket.leftTotal / bucket.stores.length,
+        left: roundPixel(bucket.leftTotal / bucket.stores.length),
         stores: bucket.stores,
-        top: bucket.topTotal / bucket.stores.length,
+        top: roundPixel(bucket.topTotal / bucket.stores.length),
         type: "cluster"
       });
     });

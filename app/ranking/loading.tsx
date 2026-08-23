@@ -1,5 +1,5 @@
-import { PageSkeleton } from "@/components/ui/page-skeleton";
+import { ReportPageSkeleton } from "@/components/ui/report-page-skeleton";
 
 export default function RankingLoading() {
-  return <PageSkeleton variant="ranking" />;
+  return <ReportPageSkeleton variant="ranking" message="TT Index 순위를 정리하는 중" />;
 }

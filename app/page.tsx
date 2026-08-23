@@ -1,7 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import { MetricCard } from "@/components/metric-card";
+import { ArrowRight, CheckCircle2, ClipboardCheck, Search, SlidersHorizontal } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -11,11 +10,10 @@ type HomePageProps = {
   };
 };
 
-const trustSignals = [
-  "구매 인증 리뷰는 더 높게 반영",
-  "구매 미인증 리뷰는 낮은 가중치 적용",
-  "최근 리뷰 흐름 반영",
-  "모든 매장은 TT Index 3.0 평균선 기준 정렬"
+const analysisSteps = [
+  { icon: Search, number: "01", title: "매장 찾기", body: "식당 링크나 매장명을 입력합니다." },
+  { icon: ClipboardCheck, number: "02", title: "리뷰 근거 확인", body: "최신성, 인증 여부, 반복 패턴을 정리합니다." },
+  { icon: SlidersHorizontal, number: "03", title: "TT Index 비교", body: "시장 평균 3.0 기준으로 경쟁력을 해석합니다." }
 ];
 
 export default function HomePage({ searchParams }: HomePageProps) {
@@ -23,7 +21,7 @@ export default function HomePage({ searchParams }: HomePageProps) {
 
   return (
     <div className="tt-container tt-page">
-      <section className="tt-hero">
+      <section className="tt-home-hero">
         <div className="tt-hero__grid">
           <div className="tt-hero__copy">
             {authRequired ? (
@@ -32,38 +30,50 @@ export default function HomePage({ searchParams }: HomePageProps) {
               </div>
             ) : null}
 
-            <div className="tt-hero__copy">
-              <Image
-                src="/brand/trusttable-logo.png"
-                alt="Trusttable"
-                width={180}
-                height={180}
-                priority
-                className="tt-logo-large"
-              />
-              <p className="tt-kicker">
-                Review Trust Infrastructure
-              </p>
+            <div className="tt-home-hero__heading">
+              <BrandMark />
+              <p className="tt-kicker">Independent review analysis</p>
               <h1 className="tt-title">
-                부풀려진 별점을 신뢰 가능한 지표로 다시 계산합니다.
+                별점은 높지만,<br />정말 믿을 만할까요?
               </h1>
               <p className="tt-lede">
-                Trusttable은 RAW Score를 숨기지 않고, 구매 인증·최근 리뷰 흐름·리뷰어 신뢰 패턴을
-                반영해 TT Index를 계산하는 리뷰 신뢰 분석 대시보드입니다.
+                식당 링크를 붙여 넣으면 리뷰의 최신성, 인증 여부, 반복 패턴을 분석해 실제 경쟁력을
+                보여드립니다.
               </p>
             </div>
-
-            <div className="tt-actions">
-              <Link href="/ranking" className={buttonVariants({ size: "lg" })}>
-                랭킹 대시보드 보기 <ArrowRight className="tt-icon-sm" aria-hidden="true" />
+            <form action="/stores" className="tt-analysis-form" role="search">
+              <label htmlFor="home-query" className="tt-sr-only">식당 링크 또는 매장명</label>
+              <Search className="tt-analysis-form__icon" aria-hidden="true" />
+              <input
+                id="home-query"
+                name="q"
+                type="search"
+                className="tt-analysis-form__input"
+                placeholder="식당 링크 또는 매장명을 입력하세요"
+              />
+              <button type="submit" className="tt-button tt-button--primary tt-button--lg">
+                신뢰도 분석하기 <ArrowRight className="tt-icon-sm" aria-hidden="true" />
+              </button>
+            </form>
+            <div className="tt-home-hero__secondary">
+              <Link href="/ranking" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                예시 결과 보기 <ArrowRight className="tt-icon-sm" aria-hidden="true" />
               </Link>
-              <Link href="/stores" className={buttonVariants({ variant: "outline", size: "lg" })}>
-                매장 데이터 보기
-              </Link>
+              <span>등록 매장은 매장명으로도 찾을 수 있어요.</span>
             </div>
           </div>
 
-          <div className="tt-hero__visual">
+          <div className="tt-home-preview" aria-label="TrustTable 분석 결과 예시">
+            <div className="tt-home-preview__header">
+              <div>
+                <p className="tt-kicker">Analysis preview</p>
+                <h2>Maple Dessert 041</h2>
+                <p>서울 마포 · 디저트 · 리뷰 128개</p>
+              </div>
+              <span className="tt-status-label tt-status-label--positive">
+                <CheckCircle2 aria-hidden="true" /> 근거 충분
+              </span>
+            </div>
             <RawAdjustedScoreBlock
               score={{
                 store_id: "demo",
@@ -83,50 +93,62 @@ export default function HomePage({ searchParams }: HomePageProps) {
                 updated_at: new Date().toISOString()
               }}
             />
-            <div className="tt-score-pair">
-              <MetricCard label="RAW Score" value="4.42" helper="사용자 리뷰 원래 평균" />
-              <MetricCard label="TT Index" value="3.34" helper="시장 평균선 3.0 기준" />
-            </div>
+            <p className="tt-home-preview__verdict">시장 평균보다 높은 리뷰 신호가 안정적으로 확인됩니다.</p>
           </div>
         </div>
       </section>
 
-      <section className="tt-signal-grid">
-        {trustSignals.map((signal) => (
-          <div key={signal} className="tt-signal-card">
-            {signal}
-          </div>
-        ))}
+      <section className="tt-home-steps" aria-labelledby="analysis-steps-title">
+        <div className="tt-section-heading">
+          <p className="tt-kicker">How it works</p>
+          <h2 id="analysis-steps-title" className="tt-section-title">세 단계로 리뷰 신호를 확인합니다</h2>
+        </div>
+        <div className="tt-home-steps__grid">
+          {analysisSteps.map((step) => {
+            const Icon = step.icon;
+
+            return (
+              <article key={step.number} className="tt-process-step">
+                <div className="tt-process-step__top">
+                  <Icon aria-hidden="true" />
+                  <span>{step.number}</span>
+                </div>
+                <h3>{step.title}</h3>
+                <p>{step.body}</p>
+              </article>
+            );
+          })}
+        </div>
       </section>
 
-      <section className="tt-info-grid">
-        <article className="tt-card">
-          <div className="tt-card-header">
-            <h3 className="tt-card-title">RAW Score와 TT Index 동시 공개</h3>
-          </div>
-          <div className="tt-card-content">
-            Trusttable은 RAW Score를 숨기지 않습니다. TT Index가 왜 달라졌는지 RAW Score와 함께
-            비교할 수 있게 보여줍니다.
-          </div>
-        </article>
-        <article className="tt-card">
-          <div className="tt-card-header">
-            <h3 className="tt-card-title">검증되지 않은 리뷰는 낮은 가중치</h3>
-          </div>
-          <div className="tt-card-content">
-            구매 미인증 리뷰는 제외하지 않고 낮은 가중치로 반영합니다. 신뢰도 신호는 점수 설명과
-            함께 투명하게 노출됩니다.
-          </div>
-        </article>
-        <article className="tt-card">
-          <div className="tt-card-header">
-            <h3 className="tt-card-title">최근 상승 매장 감지</h3>
-          </div>
-          <div className="tt-card-content">
-            최근 30일 리뷰가 과거 평균보다 충분히 높고 표본 수가 확보된 매장만 떠오르는 매장으로
-            표시합니다.
-          </div>
-        </article>
+      <section className="tt-transparency-band">
+        <div>
+          <p className="tt-kicker">Transparent by design</p>
+          <h2 className="tt-section-title">점수가 달라진 이유를 숨기지 않습니다</h2>
+        </div>
+        <div className="tt-transparency-list">
+          {[
+            "구매 인증 리뷰는 더 높게 반영",
+            "구매 미인증 리뷰는 낮은 가중치 적용",
+            "최근 리뷰 흐름 반영",
+            "시장 평균 3.0 기준으로 비교"
+          ].map((signal) => (
+            <div key={signal}><CheckCircle2 aria-hidden="true" /> {signal}</div>
+          ))}
+        </div>
+      </section>
+
+      <section className="tt-home-links">
+        {[
+          ["매장 탐색", "지역과 카테고리별로 신뢰 지표를 비교합니다.", "/stores"],
+          ["전체 랭킹", "TT Index와 RAW Score를 같은 화면에서 봅니다.", "/ranking"],
+          ["계산 방법", "평균선과 가중치가 적용되는 방식을 확인합니다.", "/tt-index"]
+        ].map(([title, body, href]) => (
+          <Link key={href} href={href} className="tt-home-link">
+            <div><h3>{title}</h3><p>{body}</p></div>
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        ))}
       </section>
     </div>
   );

@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AlertTriangle, BarChart3, CheckCircle2 } from "lucide-react";
 import { DatabaseSetupNotice } from "@/components/database-setup-notice";
 import { RawAdjustedScoreBlock } from "@/components/raw-adjusted-score-block";
 import { ReviewCard } from "@/components/review-card";
 import { RevisitRateDetail } from "@/components/revisit-rate";
 import { RisingStoreBadge } from "@/components/rising-store-badge";
-import { ScoreBadge } from "@/components/score-badge";
 import { StoreMap } from "@/components/store-map";
 import { StoreMenuList } from "@/components/store-menu-list";
 import { TrustBadge } from "@/components/trust-badge";
@@ -28,6 +28,19 @@ type StoreDetailPageProps = {
     id: string;
   };
 };
+
+function ScoreBar({ label, value }: { label: string; value: number | null | undefined }) {
+  const safeValue = typeof value === "number" && Number.isFinite(value) ? value : 0;
+
+  return (
+    <div className="tt-breakdown-row">
+      <div className="tt-breakdown-row__label"><span>{label}</span><strong>{safeValue.toFixed(2)}</strong></div>
+      <div className="tt-breakdown-row__track" aria-hidden="true">
+        <span style={{ width: `${Math.max(0, Math.min(100, (safeValue / 5) * 100))}%` }} />
+      </div>
+    </div>
+  );
+}
 
 export default async function StoreDetailPage({ params }: StoreDetailPageProps) {
   let store: StoreWithScore | null = null;
@@ -68,11 +81,11 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
 
   return (
     <div className="tt-container tt-page">
-      <header className="tt-page-hero">
+      <header className="tt-page-hero tt-result-header">
         <div className="tt-detail-header">
         <div className="tt-detail-heading">
           <div>
-            <p className="tt-kicker">Store Profile</p>
+            <p className="tt-kicker">Independent analysis report</p>
             <h1 className="tt-detail-title">
               {store.name}
             </h1>
@@ -84,6 +97,9 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
             <p className="tt-store-meta">
               {formatRegionLabel(store.region)} · {formatCategoryLabel(store.category)}
               {store.address ? ` · ${store.address}` : ""}
+            </p>
+            <p className="tt-result-header__meta">
+              리뷰 {store.score?.review_count ?? 0}개 분석 · 최근 갱신 {store.score?.updated_at ? new Intl.DateTimeFormat("ko-KR").format(new Date(store.score.updated_at)) : "미확인"}
             </p>
           </div>
           <div className="tt-chip-row">
@@ -99,17 +115,18 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
 
       <div className="tt-detail-layout">
         <RawAdjustedScoreBlock score={store.score} />
-        <Card>
+        <Card className="tt-evidence-summary-card">
           <CardHeader>
-            <CardTitle>점수 상세</CardTitle>
+            <p className="tt-kicker">Evidence overview</p>
+            <CardTitle>점수 근거</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="tt-score-detail-grid">
-              <ScoreBadge label="맛" value={store.score?.taste_score} />
-              <ScoreBadge label="서비스" value={store.score?.service_score} />
-              <ScoreBadge label="분위기" value={store.score?.environment_score} />
+            <div className="tt-score-detail-grid tt-score-detail-grid--bars">
+              <ScoreBar label="맛" value={store.score?.taste_score} />
+              <ScoreBar label="서비스" value={store.score?.service_score} />
+              <ScoreBar label="분위기" value={store.score?.environment_score} />
             </div>
-            <div className="tt-inline-stat-grid" style={{ marginTop: 18 }}>
+            <div className="tt-inline-stat-grid tt-inline-stat-grid--evidence">
               <div>
                 <div className="tt-inline-stat__label">리뷰 수</div>
                 <div className="tt-inline-stat__value">{store.score?.review_count ?? 0}</div>
@@ -129,21 +146,15 @@ export default async function StoreDetailPage({ params }: StoreDetailPageProps) 
                 <div className="tt-inline-stat__value">{store.score?.ranking_score.toFixed(2) ?? "없음"}</div>
               </div>
             </div>
-            <div className="tt-review-signal" style={{ marginTop: 18 }}>
-              <div className="tt-review-signal__title">리뷰 신호</div>
-              <div className="tt-review-signal__list">
-                <div>
-                  입력 항목 검토 필요 리뷰 {sectionMismatchCount}개
-                  <span> · 전체 리뷰 대비 {sectionMismatchRate.toFixed(1)}%</span>
+            <div className="tt-evidence-accordion">
+              <details>
+                <summary><span><BarChart3 aria-hidden="true" /> 리뷰 신뢰도 신호</span><strong>{ratingTextMismatchCount + sectionMismatchCount}건 확인</strong></summary>
+                <div className="tt-evidence-accordion__content">
+                  <div><CheckCircle2 aria-hidden="true" /><span>구조화 입력 검토</span><strong>{sectionMismatchCount}개 · {sectionMismatchRate.toFixed(1)}%</strong></div>
+                  <div><AlertTriangle aria-hidden="true" /><span>점수-내용 불일치</span><strong>{ratingTextMismatchCount}개 · {ratingTextMismatchRate.toFixed(1)}%</strong></div>
+                  <p>이 신호는 매장 평가를 확정하지 않고, 더 살펴볼 리뷰를 알려주는 참고 정보입니다.</p>
                 </div>
-                <div>
-                  점수-내용 불일치 리뷰 {ratingTextMismatchCount}개
-                  <span> · 전체 리뷰 대비 {ratingTextMismatchRate.toFixed(1)}%</span>
-                </div>
-              </div>
-              <p className="tt-review-signal__note">
-                이 신호는 매장 평가를 직접 확정하지 않고, 리뷰 내용을 더 살펴볼 수 있게 돕는 참고 지표입니다.
-              </p>
+              </details>
             </div>
           </CardContent>
         </Card>

@@ -1,3 +1,4 @@
+import { TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { StoreRisingSignal } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ export function RisingBadge({ rising, compact = false, className }: RisingBadgeP
       )}
       title={`최근 평점 +${rising.risingDelta.toFixed(2)} · 최근 리뷰 ${rising.recentReviewCount}개`}
     >
+      <TrendingUp aria-hidden="true" />
       떠오르는 매장
       {!compact ? (
         <span>+{rising.risingDelta.toFixed(2)}</span>

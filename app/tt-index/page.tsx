@@ -72,11 +72,9 @@ export default async function TtIndexPage() {
     <div className="tt-container tt-page">
       <section className="tt-page-hero">
         <div className="tt-page-hero__content">
-          <p className="tt-kicker">
-            TT Index Methodology
-          </p>
+          <p className="tt-kicker">Methodology report</p>
           <h1 className="tt-page-title">
-            TT Index는 일반 별점이 아닙니다
+            익숙한 별점을 시장 평균선 위에서 다시 읽습니다
           </h1>
           <p className="tt-lede">
             RAW Score는 사용자가 남긴 원래 리뷰 점수입니다. TT Index는 RAW Score를 시장 평균
@@ -94,49 +92,38 @@ export default async function TtIndexPage() {
         </div>
       ) : null}
 
-      <section className="tt-summary-grid">
-        <MetricCard label="Average TT Index" value="3.00" helper="시장 평균선" />
+      <section className="tt-summary-grid tt-summary-grid--method">
+        <MetricCard label="TT Index 평균선" value="3.00" helper="낮은 점수가 아닌 시장 평균" />
         <MetricCard
-          label="Average RAW Score"
+          label="현재 RAW 평균"
           value={formatScore(averageRawScore)}
           helper="신뢰 가중 원점수 평균"
         />
         <MetricCard
-          label="Stores Analyzed"
+          label="분석 매장"
           value={distributionSummary.storeCount.toLocaleString()}
           helper="리뷰 5개 이상 매장"
         />
       </section>
 
-      <section className="tt-page-hero" style={{ marginTop: 24 }}>
-        <p className="tt-kicker">
-          What TT Index Means
-        </p>
-        <h2 className="tt-section-title" style={{ marginTop: 10 }}>
-          RAW Score를 시장 평균선 위에서 다시 읽습니다
-        </h2>
-        <p className="tt-lede">
-          Trusttable은 매장의 별점을 깎기 위한 서비스가 아닙니다. 기존 RAW Score는 그대로 보여주고,
-          TT Index는 시장 평균 대비 위치를 해석하는 보조 지표입니다.
-        </p>
-        <div className="tt-method-grid">
-          <div className="tt-method-chip">
-            <div className="tt-method-chip__title">RAW Score</div>
-            <p>
-              사용자가 남긴 원래 리뷰 점수의 신뢰 가중 평균입니다.
-            </p>
+      <section className="tt-methodology-intro">
+        <div>
+          <p className="tt-kicker">Before and after</p>
+          <h2 className="tt-section-title" style={{ marginTop: 10 }}>
+            RAW Score를 시장 평균선 위에서 다시 읽습니다
+          </h2>
+          <p className="tt-lede">
+            Trusttable은 매장의 별점을 깎기 위한 서비스가 아닙니다. 기존 RAW Score는 그대로 보여주고,
+            TT Index는 시장 평균 대비 위치를 해석하는 보조 지표입니다.
+          </p>
+        </div>
+        <div className="tt-before-after">
+          <div className="tt-before-after__score">
+            <span>RAW Score</span><strong>4.75</strong><small>익숙한 원래 별점</small>
           </div>
-          <div className="tt-method-chip">
-            <div className="tt-method-chip__title">시장 평균</div>
-            <p>
-              현재 비교 대상 매장들의 RAW Score 평균입니다.
-            </p>
-          </div>
-          <div className="tt-method-chip">
-            <div className="tt-method-chip__title">TT Index</div>
-            <p>
-              시장 평균을 3.0으로 맞춘 뒤 각 매장의 상대 위치를 보여줍니다.
-            </p>
+          <div className="tt-before-after__connector" aria-hidden="true">→</div>
+          <div className="tt-before-after__score tt-before-after__score--tt">
+            <span>TT Index</span><strong>3.30</strong><small>시장 평균보다 +0.30</small>
           </div>
         </div>
       </section>
@@ -147,12 +134,10 @@ export default async function TtIndexPage() {
             <CardTitle>계산 공식</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="tt-formula">
-              TT Index = RAW Score - Market Average RAW Score + 3.0
-            </div>
+            <div className="tt-formula">TT Index = RAW Score - 시장 평균 RAW + 3.0</div>
             <p className="tt-card-description" style={{ marginTop: 14 }}>
-              예를 들어 시장 평균 RAW가 4.45이고 A매장의 RAW가 4.75라면 TT Index는
-              4.75 - 4.45 + 3.0 = 3.30입니다.
+              시장 평균 RAW가 4.45이고 A매장의 RAW가 4.75라면, 평균보다 0.30 높은 위치이므로
+              TT Index는 3.30입니다.
             </p>
           </CardContent>
         </Card>
@@ -177,6 +162,27 @@ export default async function TtIndexPage() {
       <div style={{ marginTop: 24 }}>
         <ScoreDistributionChart summary={distributionSummary} />
       </div>
+
+      <section className="tt-faq-section" aria-labelledby="tt-faq-title">
+        <div className="tt-section-heading">
+          <p className="tt-kicker">Frequently asked questions</p>
+          <h2 id="tt-faq-title" className="tt-section-title">자주 묻는 질문</h2>
+        </div>
+        <div className="tt-faq-list">
+          <details>
+            <summary>TT Index 3.0은 낮은 점수인가요?</summary>
+            <p>아닙니다. 3.0은 현재 비교 대상 매장의 시장 평균선입니다.</p>
+          </details>
+          <details>
+            <summary>RAW Score는 왜 함께 보여주나요?</summary>
+            <p>사용자가 익숙한 원래 별점과 TrustTable의 상대 지표를 직접 비교할 수 있게 하기 위해서입니다.</p>
+          </details>
+          <details>
+            <summary>리뷰가 적으면 어떻게 되나요?</summary>
+            <p>근거가 부족한 매장은 높은 RAW Score를 받았더라도 해석에 주의가 필요하다는 상태를 함께 표시합니다.</p>
+          </details>
+        </div>
+      </section>
     </div>
   );
 }

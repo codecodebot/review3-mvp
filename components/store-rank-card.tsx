@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { RisingBadge } from "@/components/rising-store-badge";
 import { ScoreDelta } from "@/components/score-delta";
-import { StarRating } from "@/components/star-rating";
 import { TrustBadge } from "@/components/trust-badge";
 import { VerificationBadge } from "@/components/verification-badge";
 import { formatCategoryLabel, formatRegionLabel } from "@/lib/constants";
@@ -19,9 +18,6 @@ type StoreRankCardProps = {
   rank: number;
   weights: ScoreWeights;
 };
-
-const RAW_STAR_COLOR = "#F4C430";
-const TT_STAR_COLOR = "#1F6F68";
 
 function formatScore(value: number) {
   return Number.isFinite(value) ? value.toFixed(2) : "0.00";
@@ -93,6 +89,9 @@ function MiniTrend({ store, weights }: StoreRankCardProps) {
 }
 
 export function StoreRankCard({ store, rank, weights }: StoreRankCardProps) {
+  const reviewCount = store.score?.review_count ?? 0;
+  const evidenceLabel = reviewCount >= 50 ? "근거 충분" : reviewCount >= 15 ? "근거 보통" : "근거 제한";
+
   return (
     <article className="tt-rank-card">
       <div className="tt-rank-card__grid">
@@ -119,47 +118,33 @@ export function StoreRankCard({ store, rank, weights }: StoreRankCardProps) {
           <p className="tt-rank-explanation">
             {scoreExplanation(store)}
           </p>
-          <div className="tt-chip-row" style={{ marginTop: 14 }}>
+          <div className="tt-chip-row tt-rank-card__badges">
             <VerificationBadge status={store.verification_status} />
             <TrustBadge level={store.score?.trust_level} />
-            <span className="tt-badge tt-badge--muted">
-              리뷰 {store.score?.review_count ?? 0}개
-            </span>
-            <span className="tt-badge tt-badge--muted">
-              재방문 {formatPercent(store.score?.revisit_rate)}
-            </span>
+            <span className="tt-status-label">{evidenceLabel} · 리뷰 {reviewCount}개</span>
+            <span className="tt-status-label">재방문 {formatPercent(store.score?.revisit_rate)}</span>
           </div>
         </div>
 
         <div className="tt-rank-score-panel">
           <div className="tt-rank-score-grid">
-            <div>
+            <div className="tt-rank-score-primary">
+              <div className="tt-score-label">TT Index</div>
+              <div className="tt-rank-score-value tt-rank-score-value--primary">
+                {formatScore(store.normalizedScore)}
+              </div>
+              <span className="tt-score-interpretation">
+                {store.normalizedScore >= 3.3 ? "평균 이상" : store.normalizedScore >= 2.95 ? "평균 수준" : "추가 검토"}
+              </span>
+            </div>
+            <div className="tt-rank-score-secondary">
               <div className="tt-score-label">
                 RAW Score
               </div>
               <div className="tt-rank-score-value">
                 {formatScore(store.rawScore)}
               </div>
-              <StarRating
-                value={store.rawScore}
-                size="sm"
-                label="RAW Score"
-                color={RAW_STAR_COLOR}
-              />
-            </div>
-            <div>
-              <div className="tt-score-label">
-                TT Index
-              </div>
-              <div className="tt-rank-score-value">
-                {formatScore(store.normalizedScore)}
-              </div>
-              <StarRating
-                value={store.normalizedScore}
-                size="sm"
-                label="TT Index"
-                color={TT_STAR_COLOR}
-              />
+              <span className="tt-score-caption">원래 리뷰 평균</span>
             </div>
           </div>
           <div className="tt-rank-score-footer">

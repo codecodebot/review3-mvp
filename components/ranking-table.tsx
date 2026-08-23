@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { MetricCard } from "@/components/metric-card";
 import { StoreRankCard } from "@/components/store-rank-card";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -173,17 +174,18 @@ function ScoringWeightsPanel({
       <CardHeader>
         <div className="tt-ranking-toolbar">
           <div>
-            <p className="tt-kicker">
-              Scoring Weights
-            </p>
-            <CardTitle>평가 항목 반영 비율</CardTitle>
+            <p className="tt-kicker">Personal view</p>
+            <CardTitle>내 취향 기준 점수</CardTitle>
           </div>
-          <p className="tt-card-description">
-            비율은 자동으로 100%로 정규화됩니다. 설정은 이 브라우저에 저장됩니다.
-          </p>
+          <Button type="button" variant="ghost" size="sm" onClick={() => onChange(DEFAULT_SCORE_WEIGHTS)}>
+            기본값으로 되돌리기
+          </Button>
         </div>
       </CardHeader>
       <CardContent>
+        <p className="tt-card-description tt-panel-intro">
+          맛, 서비스, 분위기의 중요도를 바꾸면 아래 순위가 즉시 다시 계산됩니다. 설정은 이 브라우저에 저장됩니다.
+        </p>
         <div className="tt-weights-grid">
           {controls.map((control) => (
             <div key={control.key} className="tt-weight-control">
@@ -207,21 +209,21 @@ function ScoringWeightsPanel({
             </div>
           ))}
         </div>
-        <div className="tt-method-grid">
+        <div className="tt-method-grid tt-method-grid--compact">
           <div className="tt-method-chip">
-            <div className="tt-method-chip__title">최근 리뷰 가중</div>
+            <div className="tt-method-chip__title">최근 리뷰 반영</div>
             <p>
               Half-life {DEFAULT_RECENCY_OPTIONS.halfLifeDays}일 기준으로 최근 리뷰를 더 크게 반영합니다.
             </p>
           </div>
           <div className="tt-method-chip">
-            <div className="tt-method-chip__title">구매 인증 가중</div>
+            <div className="tt-method-chip__title">인증 근거 반영</div>
             <p>
               구매 미인증 리뷰는 제외하지 않고 낮은 가중치로 반영합니다.
             </p>
           </div>
           <div className="tt-method-chip">
-            <div className="tt-method-chip__title">TT Index 평균선</div>
+            <div className="tt-method-chip__title">시장 평균선</div>
             <p>
               모든 매장의 TT Index는 시장 평균 3.0을 중심으로 정렬됩니다.
             </p>
@@ -250,11 +252,11 @@ function DashboardSummary({
 
   return (
     <div className="tt-metric-grid">
-      <MetricCard label="Average TT Index" value={formatScore(averageTtIndex)} helper="시장 평균 3.0 기준" />
-      <MetricCard label="Average RAW Score" value={formatScore(rawAverage)} helper="최근·구매인증 가중 적용" />
-      <MetricCard label="Inflation Gap" value={formatSigned(inflationGap)} helper="RAW와 TT 평균 차이" />
-      <MetricCard label="Verified Reviews" value={formatPercent(verifiedReviewRatio)} helper="구매 인증 리뷰 비율" />
-      <MetricCard label="Stores Analyzed" value={stores.length.toLocaleString()} helper={`상승 신호 ${risingCount}개`} />
+      <MetricCard label="평균 TT Index" value={formatScore(averageTtIndex)} helper="시장 평균 3.0 기준" />
+      <MetricCard label="평균 RAW Score" value={formatScore(rawAverage)} helper="원래 리뷰 점수" />
+      <MetricCard label="점수 차이" value={formatSigned(inflationGap)} helper="RAW와 TT 평균 차이" />
+      <MetricCard label="구매 인증 비율" value={formatPercent(verifiedReviewRatio)} helper="분석 리뷰 기준" />
+      <MetricCard label="분석 매장" value={stores.length.toLocaleString()} helper={`상승 신호 ${risingCount}개`} />
     </div>
   );
 }
@@ -270,30 +272,27 @@ function TopStoreBrief({
   const primaryScore = sortMetric === "raw-score" ? store.rawScore : store.normalizedScore;
 
   return (
-    <Card className="tt-leader-card">
+    <Card className="tt-leader-card tt-leader-card--report">
       <CardContent>
         <div>
-          <p className="tt-kicker">
-            Current Leader
-          </p>
+          <p className="tt-kicker">현재 1위</p>
           <h2 className="tt-section-title">
             #1 {store.name}
           </h2>
           <p className="tt-card-description">
-            현재 선택한 {sortLabel} 기준으로 가장 높은 매장입니다. RAW Score와 TT Index는 항상 함께
-            비교할 수 있습니다.
+            {sortLabel} 기준으로 가장 높은 매장입니다. 원래 별점과 시장 평균 대비 위치를 함께 확인하세요.
           </p>
         </div>
         <div className="tt-leader-card__score">
           <div className="tt-kicker">
-            {sortLabel}
+            {sortMetric === "raw-score" ? "RAW Score" : "TT Index"}
           </div>
           <div className="tt-leader-card__value">
             {formatScore(primaryScore)}
           </div>
           <div className="tt-leader-card__meta">
-            <span>RAW Score {formatScore(store.rawScore)}</span>
-            <span>평균 대비 {formatSigned(store.rawAverageDelta)}</span>
+            <span>RAW {formatScore(store.rawScore)}</span>
+            <span>시장 평균 대비 {formatSigned(store.rawAverageDelta)}</span>
           </div>
         </div>
       </CardContent>
@@ -362,10 +361,8 @@ function MethodologyCard() {
   return (
     <Card>
       <CardHeader>
-        <p className="tt-kicker">
-          Methodology
-        </p>
-        <CardTitle>Trusttable 점수 계산 방식</CardTitle>
+        <p className="tt-kicker">Methodology</p>
+        <CardTitle>점수는 이렇게 해석합니다</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="tt-formula">
@@ -373,14 +370,9 @@ function MethodologyCard() {
           <br />
           RAW Score includes recency, purchase verification, and reliability weights
         </div>
-        <div className="tt-chip-row" style={{ marginTop: 16 }}>
+        <div className="tt-evidence-list">
           {labels.map((label) => (
-            <div
-              key={label}
-              className="tt-badge tt-badge--muted"
-            >
-              {label}
-            </div>
+            <div key={label} className="tt-evidence-list__item"><span aria-hidden="true" />{label}</div>
           ))}
         </div>
         <p className="tt-card-description" style={{ marginTop: 16 }}>
@@ -442,14 +434,12 @@ export function RankingTable({ stores }: RankingTableProps) {
         <div className="tt-stack">
           <div className="tt-ranking-toolbar">
             <div>
-              <p className="tt-kicker">
-                Store Ranking
-              </p>
+              <p className="tt-kicker">Store ranking</p>
               <h2 className="tt-section-title">
                 {sortLabel} 기준 상위 매장
               </h2>
               <p className="tt-card-description">
-                TT Index와 RAW Score를 모두 보여주되, 선택한 기준으로 순위를 다시 정렬합니다.
+                모든 결과에서 TT Index, RAW Score, 근거 수준을 함께 보여줍니다.
               </p>
             </div>
             <label className="tt-field tt-ranking-toolbar__select">

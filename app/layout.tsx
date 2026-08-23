@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import { BarChart3, BookOpenText, Building2, LogIn } from "lucide-react";
 import { logoutAction } from "@/app/actions/auth";
+import { BrandMark } from "@/components/brand-mark";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import "./globals.css";
+import "./report-ui.css";
 
 export const metadata: Metadata = {
   title: "Trusttable",
@@ -16,10 +18,9 @@ export const metadata: Metadata = {
 };
 
 const navItems = [
-  { href: "/stores", label: "매장 목록" },
-  { href: "/ranking", label: "랭킹" },
-  { href: "/tt-index", label: "TT Index란?" },
-  { href: "/admin", label: "관리자" }
+  { href: "/stores", label: "매장 탐색", icon: Building2 },
+  { href: "/ranking", label: "랭킹", icon: BarChart3 },
+  { href: "/tt-index", label: "TT Index", icon: BookOpenText }
 ];
 
 async function getHeaderUserEmail() {
@@ -49,17 +50,10 @@ export default async function RootLayout({
           <header className="tt-header">
             <div className="tt-container tt-header__inner">
               <Link href="/" className="tt-brand" aria-label="Trusttable 홈">
-                <Image
-                  src="/brand/trusttable-logo.png"
-                  alt="Trusttable"
-                  width={160}
-                  height={160}
-                  priority
-                  className="tt-brand__image"
-                />
+                <BrandMark />
               </Link>
               <div className="tt-header__actions">
-                <nav className="tt-nav" aria-label="주요 메뉴">
+                <nav className="tt-nav tt-nav--desktop" aria-label="주요 메뉴">
                   {navItems.map((item) => (
                     <Link
                       key={item.href}
@@ -84,13 +78,29 @@ export default async function RootLayout({
                     href="/login"
                     className={buttonVariants({ variant: "outline", size: "sm" })}
                   >
-                    로그인
+                    <LogIn className="tt-icon-sm" aria-hidden="true" /> 로그인
                   </Link>
                 )}
               </div>
             </div>
           </header>
           <main>{children}</main>
+          <nav className="tt-mobile-nav" aria-label="모바일 주요 메뉴">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <Link key={item.href} href={item.href} className="tt-mobile-nav__item">
+                  <Icon aria-hidden="true" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+            <Link href="/login" className="tt-mobile-nav__item">
+              <LogIn aria-hidden="true" />
+              <span>계정</span>
+            </Link>
+          </nav>
         </div>
       </body>
     </html>
