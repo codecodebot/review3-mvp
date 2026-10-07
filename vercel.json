@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "climbback-register.vercel.app"
+        }
+      ],
+      "destination": "https://climbback-preregister.dymin0510.chatgpt.site/:path*"
+    }
+  ]
+}
